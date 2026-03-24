@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skyline Accounting — AML/CTF Client Onboarding</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sky: {
+              900: '#0f2a4a',
+              800: '#1a3d6b',
+              700: '#1e4d8c',
+              600: '#2563a8',
+              500: '#3b82c4',
+              100: '#e8f0fa',
+              50:  '#f4f8fd',
+            },
+            slate: { 50: '#f8fafc' }
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    .section-block { display: none; }
+    .section-block.active { display: block; }
+    .entity-card { transition: all 0.15s ease; cursor: pointer; }
+    .entity-card.selected { border-color: #2563a8; background: #e8f0fa; }
+    .entity-card:hover:not(.selected) { border-color: #93c5fd; background: #f4f8fd; }
+    .add-person-row { transition: all 0.2s ease; }
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .step-dot { transition: all 0.2s; }
+    .required-star { color: #dc2626; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"],
+    select, textarea {
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      width: 100%;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+      background: white;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #2563a8; box-shadow: 0 0 0 3px rgba(37,99,168,0.1); }
+    label { font-size: 0.85rem; font-weight: 500; color: #374151; display: block; margin-bottom: 0.3rem; }
+    .form-group { margin-bottom: 1.1rem; }
+    .section-card { background: white; border-radius: 0.75rem; padding: 1.75rem; margin-bottom: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border: 1px solid #e5e7eb; }
+    .section-title { font-size: 1rem; font-weight: 700; color: #0f2a4a; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; border-bottom: 2px solid #e8f0fa; padding-bottom: 0.75rem; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #1a3d6b; color: white; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+    .pep-highlight { background: #fffbeb; border: 1px solid #fbbf24; border-radius: 0.5rem; padding: 0.85rem 1rem; font-size: 0.82rem; color: #92400e; }
+    .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 0.85rem 1rem; font-size: 0.82rem; color: #1e40af; }
+    .person-block { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; position: relative; }
+    .remove-btn { position: absolute; top: 0.75rem; right: 0.75rem; color: #ef4444; font-size: 0.8rem; cursor: pointer; font-weight: 500; }
+    .remove-btn:hover { color: #b91c1c; }
+    .add-btn { display: inline-flex; align-items: center; gap: 0.4rem; color: #2563a8; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+    .add-btn:hover { color: #1a3d6b; }
+    .progress-bar { height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #1a3d6b, #3b82c4); border-radius: 2px; transition: width 0.4s ease; }
+    .submit-btn { background: linear-gradient(135deg, #1a3d6b, #2563a8); color: white; padding: 0.85rem 2.5rem; border-radius: 0.5rem; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; width: 100%; transition: opacity 0.2s; }
+    .submit-btn:hover { opacity: 0.92; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    .entity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
+    .declaration-check { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.85rem; color: #374151; }
+    .declaration-check input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: 0.1rem; flex-shrink: 0; accent-color: #1a3d6b; }
+    .success-screen { display: none; text-align: center; padding: 3rem 1rem; }
+    .entity-icon { font-size: 1.75rem; margin-bottom: 0.4rem; }
+  </style>
+</head>
+<body class="bg-sky-50 font-sans min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-sky-900 text-white sticky top-0 z-50 shadow-lg">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+        <div class="font-bold text-lg tracking-tight">Skyline Accounting</div>
+        <div class="text-sky-300 text-xs mt-0.5">AML/CTF Client Onboarding — Confidential</div>
+      </div>
+      <div class="text-right hidden sm:block">
+        <div class="text-xs text-sky-300">Need help?</div>
+        <div class="text-sm font-medium">dhimesh@skylineaccounting.com.au</div>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div class="progress-bar mx-4 mb-0" style="border-radius:0;">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-8">
+
+    <!-- Intro -->
+    <div class="section-card mb-6">
+      <h1 class="text-xl font-bold text-sky-900 mb-2">Client Onboarding — AML/CTF Declaration</h1>
+      <p class="text-sm text-gray-600 leading-relaxed">
+        As an accounting practice regulated under Australia's Anti-Money Laundering and Counter-Terrorism
+        Financing Act 2006 (AML/CTF Act), Skyline Accounting is required to collect and verify certain
+        information about every client before providing services. This form is confidential and used for
+        compliance purposes only. Please complete all required fields marked <span class="required-star">*</span>.
+      </p>
+      <div class="info-box mt-4">
+        <strong>Before you begin:</strong> You will also be asked to upload a copy of your photo ID
+        (driver's licence or passport) and an ATO document through our Seamlss portal. You will receive
+        a separate link for this step.
+      </div>
+    </div>
+
+    <form id="mainForm" novalidate>
+
+      <!-- ── STEP 1: ENTITY TYPE ─────────────────────────────────────────── -->
+      <div class="section-card">
+        <div class="section-title"><span class="badge">1</span> Tell us about your entity type</div>
+        <p class="text-sm text-gray-500 mb-4">Select the option that best describes how you will be engaging with us. If you have multiple entities (e.g. you personally AND a company), you will be able to add them after completing this form.</p>
+        <div class="entity-grid" id="entityGrid">
+          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="individual" onclick="selectEntity('individual', this)">
+            <div class="entity-icon">👤</div>
+            <div class="font-semibold text-sm text-gray-800">Individual</div>
+            <div class="text-xs text-gray-500 mt-1">Personal services</div>
+          </div>
+          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="soletrader" onclick="selectEntity('soletrader', this)">
+            <div class="entity-icon">🧾</div>
+            <div class="font-semibold text-sm text-gray-800">Sole Trader</div>
+            <div class="text-xs text-gray-500 mt-1">ABN, trading as yourself</div>
+          </div>
+          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="company" onclick="selectEntity('company', this)">
+            <div class="entity-icon">🏢</div>
+            <div class="font-semibold text-sm text-gray-800">Company</div>
+            <div class="text-xs text-gray-500 mt-1">Pty Ltd, Ltd, etc.</div>
+          </div>
+          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="trust" onclick="selectEntity('trust', this)">
+            <div class="entity-icon">🔒</div>
+            <div class="font-semibold text-sm text-gray-800">Trust</div>
+            <div class="text-xs text-gray-500 mt-1">Family, unit, discretionary</div>
+          </div>
+          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="partnership" onclick="selectEntity('partnership', this)">
+            <div class="entity-icon">🤝</div>
+            <div class="font-semibold text-sm text-gray-800">Partnership</div>
+            <div class="text-xs text-gray-500 mt-1">Two or more partners</div>
+          </div>
+          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="association" onclick="selectEntity('association', this)">
+            <div class="entity-icon">🏛️</div>
+            <div class="font-semibold text-sm text-gray-800">Association</div>
+            <div class="text-xs text-gray-500 mt-1">Club, NFP, incorporated body</div>
+          </div>
+        </div>
+        <div id="entityError" class="text-red-500 text-xs mt-2 hidden">Please select an entity type to continue.</div>
+      </div>
+
+      <!-- ── STEP 2: CONTACT DETAILS (always shown after selection) ─────── -->
+      <div class="section-block active" id="block-contact">
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">2</span> Primary contact details</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>First name <span class="required-star">*</span></label>
+              <input type="text" name="firstName" placeholder="Given name" required />
+            </div>
+            <div class="form-group">
+              <label>Last name <span class="required-star">*</span></label>
+              <input type="text" name="lastName" placeholder="Family name" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Preferred name (if different)</label>
+            <input type="text" name="preferredName" placeholder="e.g. nickname or trading name" />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Email address <span class="required-star">*</span></label>
+              <input type="email" name="email" placeholder="your@email.com" required />
+            </div>
+            <div class="form-group">
+              <label>Phone number <span class="required-star">*</span></label>
+              <input type="tel" name="phone" placeholder="04xx xxx xxx" required />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ INDIVIDUAL ══════════════════════════════════════════════════════ -->
+      <div class="section-block" id="block-individual">
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">3</span> Individual details</div>
+          <div class="form-group">
+            <label>Full legal name (as it appears on your ID) <span class="required-star">*</span></label>
+            <input type="text" name="ind_fullName" placeholder="Full legal name" required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Date of birth <span class="required-star">*</span></label>
+              <input type="date" name="ind_dob" required />
+            </div>
+            <div class="form-group">
+              <label>Country of birth <span class="required-star">*</span></label>
+              <input type="text" name="ind_countryBirth" placeholder="e.g. Australia" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Residential address <span class="required-star">*</span></label>
+            <input type="text" name="ind_address" placeholder="Street address" required />
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Suburb <span class="required-star">*</span></label>
+              <input type="text" name="ind_suburb" required />
+            </div>
+            <div class="form-group">
+              <label>State <span class="required-star">*</span></label>
+              <select name="ind_state" required>
+                <option value="">Select</option>
+                <option>ACT</option><option>NSW</option><option>NT</option>
+                <option>QLD</option><option>SA</option><option>TAS</option>
+                <option>VIC</option><option>WA</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Postcode <span class="required-star">*</span></label>
+              <input type="text" name="ind_postcode" placeholder="0000" maxlength="4" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Country of residence <span class="required-star">*</span></label>
+            <input type="text" name="ind_countryResidence" placeholder="e.g. Australia" value="Australia" required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Occupation / Job title <span class="required-star">*</span></label>
+              <input type="text" name="ind_occupation" placeholder="e.g. Registered Nurse" required />
+            </div>
+            <div class="form-group">
+              <label>Employer name</label>
+              <input type="text" name="ind_employer" placeholder="e.g. Queensland Health" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ SOLE TRADER ═════════════════════════════════════════════════════ -->
+      <div class="section-block" id="block-soletrader">
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">3</span> Individual details (Sole Trader)</div>
+          <div class="form-group">
+            <label>Full legal name (as it appears on your ID) <span class="required-star">*</span></label>
+            <input type="text" name="st_fullName" placeholder="Full legal name" required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Date of birth <span class="required-star">*</span></label>
+              <input type="date" name="st_dob" required />
+            </div>
+            <div class="form-group">
+              <label>Country of birth <span class="required-star">*</span></label>
+              <input type="text" name="st_countryBirth" placeholder="e.g. Australia" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Residential address <span class="required-star">*</span></label>
+            <input type="text" name="st_address" placeholder="Street address" required />
+          </div>
+          <div class="grid-3">
+            <div class="form-group">
+              <label>Suburb <span class="required-star">*</span></label>
+              <input type="text" name="st_suburb" required />
+            </div>
+            <div class="form-group">
+              <label>State <span class="required-star">*</span></label>
+              <select name="st_state" required>
+                <option value="">Select</option>
+                <option>ACT</option><option>NSW</option><option>NT</option>
+                <option>QLD</option><option>SA</option><option>TAS</option>
+                <option>VIC</option><option>WA</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Postcode <span class="required-star">*</span></label>
+              <input type="text" name="st_postcode" placeholder="0000" maxlength="4" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">4</span> Business details</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Business / Trading name <span class="required-star">*</span></label>
+              <input type="text" name="st_bizName" placeholder="e.g. Smith Plumbing" required />
+            </div>
+            <div class="form-group">
+              <label>ABN <span class="required-star">*</span></label>
+              <input type="text" name="st_abn" placeholder="xx xxx xxx xxx" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Business address (if different from residential)</label>
+            <input type="text" name="st_bizAddress" placeholder="Street address" />
+          </div>
+          <div class="form-group">
+            <label>Nature of business / industry <span class="required-star">*</span></label>
+            <input type="text" name="st_bizNature" placeholder="e.g. Plumbing and gas fitting" required />
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ COMPANY ══════════════════════════════════════════════════════════ -->
+      <div class="section-block" id="block-company">
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">3</span> Company details</div>
+          <div class="form-group">
+            <label>Full company name (as registered with ASIC) <span class="required-star">*</span></label>
+            <input type="text" name="co_name" placeholder="e.g. Smith Holdings Pty Ltd" required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>ACN <span class="required-star">*</span></label>
+              <input type="text" name="co_acn" placeholder="xxx xxx xxx" required />
+            </div>
+            <div class="form-group">
+              <label>ABN (if different)</label>
+              <input type="text" name="co_abn" placeholder="xx xxx xxx xxx" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Registered address <span class="required-star">*</span></label>
+            <input type="text" name="co_regAddress" placeholder="Registered office address" required />
+          </div>
+          <div class="form-group">
+            <label>Principal place of business (if different from registered address)</label>
+            <input type="text" name="co_bizAddress" placeholder="Main operating address" />
+          </div>
+          <div class="form-group">
+            <label>Nature of business / industry <span class="required-star">*</span></label>
+            <input type="text" name="co_bizNature" placeholder="e.g. Property investment and development" required />
+          </div>
+          <div class="form-group">
+            <label>Country of incorporation <span class="required-star">*</span></label>
+            <input type="text" name="co_country" placeholder="e.g. Australia" value="Australia" required />
+          </div>
+        </div>
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">4</span> Directors</div>
+          <p class="text-sm text-gray-500 mb-4">List all current directors of the company.</p>
+          <div id="directors-list">
+            <div class="person-block" id="director-0">
+              <div class="font-semibold text-sm text-sky-900 mb-3">Director 1</div>
+              <div class="grid-2">
+                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="dir_name_0" required /></div>
+                <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="dir_dob_0" required /></div>
+              </div>
+              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="dir_address_0" required /></div>
+              <div class="form-group"><label>Country of residence <span class="required-star">*</span></label><input type="text" name="dir_country_0" value="Australia" required /></div>
+            </div>
+          </div>
+          <div class="add-btn" onclick="addPerson('directors-list', 'director', 'Director')">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add another director
+          </div>
+        </div>
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">5</span> Beneficial owners</div>
+          <p class="text-sm text-gray-500 mb-4">List all individuals who directly or indirectly own 25% or more of the company, or who exercise effective control.</p>
+          <div id="benefowners-list">
+            <div class="person-block" id="benefowner-0">
+              <div class="font-semibold text-sm text-sky-900 mb-3">Beneficial Owner 1</div>
+              <div class="grid-2">
+                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="bo_name_0" required /></div>
+                <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="bo_dob_0" required /></div>
+              </div>
+              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="bo_address_0" required /></div>
+              <div class="form-group"><label>% ownership / nature of control <span class="required-star">*</span></label><input type="text" name="bo_ownership_0" placeholder="e.g. 50% shareholder" required /></div>
+            </div>
+          </div>
+          <div class="add-btn" onclick="addPerson('benefowners-list', 'benefowner', 'Beneficial Owner')">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add another beneficial owner
+          </div>
+          <div class="info-box mt-4">
+            <strong>Tip:</strong> If the company has no individual who owns 25%+ (e.g. widely held), please describe the ownership structure and list the senior managing official (CEO or equivalent).
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ TRUST ═══════════════════════════════════════════════════════════ -->
+      <div class="section-block" id="block-trust">
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">3</span> Trust details</div>
+          <div class="form-group">
+            <label>Full name of the trust <span class="required-star">*</span></label>
+            <input type="text" name="tr_name" placeholder="e.g. Smith Family Trust" required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Type of trust <span class="required-star">*</span></label>
+              <select name="tr_type" required>
+                <option value="">Select</option>
+                <option>Discretionary (Family) Trust</option>
+                <option>Unit Trust</option>
+                <option>Bare Trust</option>
+                <option>Testamentary Trust</option>
+                <option>Hybrid Trust</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date trust was established <span class="required-star">*</span></label>
+              <input type="date" name="tr_date" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>ABN (if applicable)</label>
+            <input type="text" name="tr_abn" placeholder="xx xxx xxx xxx" />
+          </div>
+          <div class="form-group">
+            <label>Country where trust is established <span class="required-star">*</span></label>
+            <input type="text" name="tr_country" placeholder="e.g. Australia" value="Australia" required />
+          </div>
+          <div class="form-group">
+            <label>Purpose / nature of the trust <span class="required-star">*</span></label>
+            <input type="text" name="tr_purpose" placeholder="e.g. Family asset management and investment" required />
+          </div>
+        </div>
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">4</span> Trustee details</div>
+          <div class="form-group">
+            <label>Type of trustee <span class="required-star">*</span></label>
+            <select name="tr_trusteeType" onchange="toggleTrusteeType(this.value)" required>
+              <option value="">Select</option>
+              <option value="individual">Individual trustee(s)</option>
+              <option value="corporate">Corporate trustee (a company)</option>
+            </select>
+          </div>
+          <div id="trustee-individual" style="display:none">
+            <div id="trustees-list">
+              <div class="person-block" id="trustee-0">
+                <div class="font-semibold text-sm text-sky-900 mb-3">Individual Trustee 1</div>
+                <div class="grid-2">
+                  <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="tr_trustee_name_0" /></div>
+                  <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="tr_trustee_dob_0" /></div>
+                </div>
+                <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="tr_trustee_address_0" /></div>
+              </div>
+            </div>
+            <div class="add-btn" onclick="addPerson('trustees-list', 'trustee', 'Individual Trustee')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Add another trustee
+            </div>
+          </div>
+          <div id="trustee-corporate" style="display:none">
+            <div class="grid-2">
+              <div class="form-group"><label>Corporate trustee name <span class="required-star">*</span></label><input type="text" name="tr_corp_name" placeholder="e.g. Smith Holdings Pty Ltd" /></div>
+              <div class="form-group"><label>ACN <span class="required-star">*</span></label><input type="text" name="tr_corp_acn" placeholder="xxx xxx xxx" /></div>
+            </div>
+            <p class="text-sm text-gray-500 mt-2">Directors and beneficial owners of the corporate trustee will also need to be identified. Please list them below.</p>
+            <div id="corp-trustees-list" class="mt-3">
+              <div class="person-block" id="corp-trustee-0">
+                <div class="font-semibold text-sm text-sky-900 mb-3">Corporate Trustee — Director 1</div>
+                <div class="grid-2">
+                  <div class="form-group"><label>Full legal name</label><input type="text" name="tr_corp_dir_name_0" /></div>
+                  <div class="form-group"><label>Date of birth</label><input type="date" name="tr_corp_dir_dob_0" /></div>
+                </div>
+                <div class="form-group"><label>Residential address</label><input type="text" name="tr_corp_dir_address_0" /></div>
+              </div>
+            </div>
+            <div class="add-btn" onclick="addPerson('corp-trustees-list', 'corp-trustee', 'Corporate Trustee — Director')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Add another director
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">5</span> Beneficiaries</div>
+          <div class="form-group">
+            <label>How are beneficiaries determined? <span class="required-star">*</span></label>
+            <select name="tr_benefClass" required>
+              <option value="">Select</option>
+              <option>Named individuals listed in the trust deed</option>
+              <option>Class of beneficiaries (e.g. all family members of settlor)</option>
+              <option>Both named individuals and a class</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Please list named beneficiaries (or describe the class) <span class="required-star">*</span></label>
+            <textarea name="tr_benefList" rows="3" placeholder="e.g. John Smith, Jane Smith and their children as defined in the trust deed..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Settlor full name (person who established the trust)</label>
+            <input type="text" name="tr_settlor" placeholder="Full legal name of settlor" />
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ PARTNERSHIP ══════════════════════════════════════════════════════ -->
+      <div class="section-block" id="block-partnership">
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">3</span> Partnership details</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Partnership name <span class="required-star">*</span></label>
+              <input type="text" name="pt_name" placeholder="e.g. Smith & Jones" required />
+            </div>
+            <div class="form-group">
+              <label>ABN <span class="required-star">*</span></label>
+              <input type="text" name="pt_abn" placeholder="xx xxx xxx xxx" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nature of business <span class="required-star">*</span></label>
+            <input type="text" name="pt_nature" placeholder="e.g. Building and construction" required />
+          </div>
+          <div class="form-group">
+            <label>Principal place of business <span class="required-star">*</span></label>
+            <input type="text" name="pt_address" required />
+          </div>
+        </div>
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">4</span> Partners</div>
+          <p class="text-sm text-gray-500 mb-4">List all partners in the partnership.</p>
+          <div id="partners-list">
+            <div class="person-block" id="partner-0">
+              <div class="font-semibold text-sm text-sky-900 mb-3">Partner 1</div>
+              <div class="grid-2">
+                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="pt_partner_name_0" required /></div>
+                <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="pt_partner_dob_0" required /></div>
+              </div>
+              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="pt_partner_address_0" required /></div>
+              <div class="form-group"><label>% interest in partnership</label><input type="text" name="pt_partner_pct_0" placeholder="e.g. 50%" /></div>
+            </div>
+          </div>
+          <div class="add-btn" onclick="addPerson('partners-list', 'partner', 'Partner')">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add another partner
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ ASSOCIATION ══════════════════════════════════════════════════════ -->
+      <div class="section-block" id="block-association">
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">3</span> Association details</div>
+          <div class="form-group">
+            <label>Full name of the association <span class="required-star">*</span></label>
+            <input type="text" name="as_name" placeholder="e.g. Brisbane Cycling Club Inc." required />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>ABN (if any)</label>
+              <input type="text" name="as_abn" placeholder="xx xxx xxx xxx" />
+            </div>
+            <div class="form-group">
+              <label>Incorporation number (if incorporated)</label>
+              <input type="text" name="as_incNumber" placeholder="e.g. IA1234567" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Purpose / objects of the association <span class="required-star">*</span></label>
+            <textarea name="as_purpose" rows="2" placeholder="e.g. Promotion of amateur cycling in Queensland" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Principal address <span class="required-star">*</span></label>
+            <input type="text" name="as_address" required />
+          </div>
+        </div>
+
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge">4</span> Governing committee members</div>
+          <p class="text-sm text-gray-500 mb-4">List the president, secretary and treasurer (minimum).</p>
+          <div id="committee-list">
+            <div class="person-block" id="committee-0">
+              <div class="grid-2">
+                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="as_cm_name_0" required /></div>
+                <div class="form-group"><label>Role (e.g. President) <span class="required-star">*</span></label><input type="text" name="as_cm_role_0" required /></div>
+              </div>
+              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="as_cm_address_0" required /></div>
+            </div>
+          </div>
+          <div class="add-btn" onclick="addPerson('committee-list', 'committee', 'Committee Member')">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add another committee member
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── STEP: NATURE OF SERVICE (all entities) ──────────────────────── -->
+      <div class="section-block" id="block-service">
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge" id="badge-service">6</span> Services requested</div>
+          <div class="form-group">
+            <label>Which services are you seeking from Skyline Accounting? <span class="required-star">*</span></label>
+            <div class="space-y-2 mt-1">
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_tax" /> Tax returns and compliance</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_accounts" /> Financial statements / management accounts</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_advisory" /> Business advisory</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_structure" /> Company / trust structuring or restructuring</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_regoffice" /> Registered office address</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_buysell" /> Assistance with buying or selling a business or entity</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_finance" /> Assistance with finance or loan applications</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_other" /> Other</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Why are you seeking these services? Please describe briefly. <span class="required-star">*</span></label>
+            <textarea name="service_reason" rows="3" placeholder="e.g. We need annual tax and financial statements for our investment property trust, and are looking to restructure ownership..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Expected frequency / value of transactions (if applicable)</label>
+            <input type="text" name="service_frequency" placeholder="e.g. Annual tax return, occasional business advice" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP: SOURCE OF FUNDS ────────────────────────────────────────── -->
+      <div class="section-block" id="block-funds">
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge" id="badge-funds">7</span> Source of funds and wealth</div>
+          <p class="text-sm text-gray-500 mb-4">We are required by law to understand where the funds involved in our engagement come from. Please answer both questions below honestly and in as much detail as possible.</p>
+          <div class="form-group">
+            <label>Source of funds — Where do the funds for this engagement come from? <span class="required-star">*</span></label>
+            <div class="space-y-2 mt-1 mb-3">
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_salary" /> Salary / wages</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_business" /> Business income</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_investment" /> Investment income (dividends, rent, interest)</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_sale" /> Proceeds from sale of asset or business</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_inheritance" /> Inheritance or gift</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_loan" /> Loan or financing</label>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_other" /> Other</label>
+            </div>
+            <textarea name="funds_detail" rows="2" placeholder="Please provide any additional detail on the source of funds..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Source of wealth — How has your overall wealth been accumulated? <span class="required-star">*</span></label>
+            <textarea name="wealth_detail" rows="3" placeholder="e.g. Accumulated over 20 years of employment as a nurse and rental property income from 2 investment properties in Brisbane..." required></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP: PEP DECLARATION ────────────────────────────────────────── -->
+      <div class="section-block" id="block-pep">
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge" id="badge-pep">8</span> Politically Exposed Person (PEP) declaration</div>
+          <div class="pep-highlight mb-4">
+            <strong>What is a PEP?</strong> A Politically Exposed Person is someone who holds (or has held within the last 2 years) a prominent public position — such as a senior government official, politician, judge, military officer, ambassador, or senior executive of a state-owned enterprise — in Australia or overseas. Close family members and known associates of such persons are also considered PEPs.
+          </div>
+          <div class="form-group">
+            <label>Are you, or is any director, beneficial owner, trustee, partner or controlling person associated with this engagement, a PEP? <span class="required-star">*</span></label>
+            <div class="flex gap-6 mt-2">
+              <label class="flex items-center gap-2 font-normal"><input type="radio" name="pep_status" value="no" onchange="togglePepDetail(this.value)" required /> No</label>
+              <label class="flex items-center gap-2 font-normal"><input type="radio" name="pep_status" value="yes" onchange="togglePepDetail(this.value)" required /> Yes</label>
+              <label class="flex items-center gap-2 font-normal"><input type="radio" name="pep_status" value="unsure" onchange="togglePepDetail(this.value)" required /> Unsure</label>
+            </div>
+          </div>
+          <div id="pep-detail" style="display:none">
+            <div class="form-group">
+              <label>Please provide details — name, their role/position, country, and their relationship to you or the entity <span class="required-star">*</span></label>
+              <textarea name="pep_detail" rows="3" placeholder="e.g. John Smith, former Senator for Queensland, Australia, 2014–2022. John is the sole director of the company."></textarea>
+            </div>
+          </div>
+          <div id="pep-unsure" style="display:none" class="info-box">
+            Our AML/CTF Compliance Officer will follow up with you to clarify this. Please continue with the form.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP: ADDITIONAL ENTITIES ───────────────────────────────────── -->
+      <div class="section-block" id="block-additional">
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge" id="badge-add">9</span> Additional entities</div>
+          <div class="form-group">
+            <label>Do you have other entities (companies, trusts, partnerships) that you would also like Skyline Accounting to provide services to? <span class="required-star">*</span></label>
+            <div class="flex gap-6 mt-2">
+              <label class="flex items-center gap-2 font-normal"><input type="radio" name="has_additional" value="no" onchange="toggleAdditional(this.value)" required /> No — this is my only entity</label>
+              <label class="flex items-center gap-2 font-normal"><input type="radio" name="has_additional" value="yes" onchange="toggleAdditional(this.value)" required /> Yes</label>
+            </div>
+          </div>
+          <div id="additional-detail" style="display:none">
+            <div class="info-box">
+              You will receive a separate onboarding link for each additional entity after we have processed this form. Please list them below so we can prepare the right forms.
+            </div>
+            <div class="form-group mt-3">
+              <label>List your additional entities</label>
+              <textarea name="additional_entities" rows="3" placeholder="e.g. 1. Smith Investments Pty Ltd (company)&#10;2. Smith Family Trust (trust)"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP: DECLARATION ────────────────────────────────────────────── -->
+      <div class="section-block" id="block-declaration">
+        <div class="section-card fade-in">
+          <div class="section-title"><span class="badge" id="badge-decl">10</span> Declaration</div>
+          <p class="text-sm text-gray-600 mb-4">Please read and confirm the following before submitting.</p>
+          <div class="space-y-3 mb-6">
+            <div class="declaration-check">
+              <input type="checkbox" name="decl_1" id="decl_1" required />
+              <label for="decl_1" class="font-normal cursor-pointer">I confirm that all information provided in this form is true, accurate and complete to the best of my knowledge.</label>
+            </div>
+            <div class="declaration-check">
+              <input type="checkbox" name="decl_2" id="decl_2" required />
+              <label for="decl_2" class="font-normal cursor-pointer">I understand that Skyline Accounting is required by law to collect and verify this information, and that providing false or misleading information may be a criminal offence.</label>
+            </div>
+            <div class="declaration-check">
+              <input type="checkbox" name="decl_3" id="decl_3" required />
+              <label for="decl_3" class="font-normal cursor-pointer">I understand that Skyline Accounting may request additional information or documents at any time, and that services cannot commence until identity verification is complete.</label>
+            </div>
+            <div class="declaration-check">
+              <input type="checkbox" name="decl_4" id="decl_4" required />
+              <label for="decl_4" class="font-normal cursor-pointer">I will notify Skyline Accounting promptly if any of the information provided in this form changes.</label>
+            </div>
+          </div>
+          <div class="grid-2 mb-4">
+            <div class="form-group">
+              <label>Full name of person completing this form <span class="required-star">*</span></label>
+              <input type="text" name="decl_name" required />
+            </div>
+            <div class="form-group">
+              <label>Capacity (e.g. Director, Trustee, Individual) <span class="required-star">*</span></label>
+              <input type="text" name="decl_capacity" placeholder="e.g. Sole Director" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Date <span class="required-star">*</span></label>
+            <input type="date" name="decl_date" id="decl_date" required />
+          </div>
+          <button type="submit" class="submit-btn mt-2">Submit Onboarding Form →</button>
+          <p class="text-xs text-gray-400 text-center mt-3">Your information is encrypted and stored securely. It will only be accessed by authorised Skyline Accounting staff for AML/CTF compliance purposes.</p>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- ── SUCCESS SCREEN ─────────────────────────────────────────────────── -->
+    <div class="success-screen section-card" id="successScreen">
+      <div class="text-5xl mb-4">✅</div>
+      <h2 class="text-2xl font-bold text-sky-900 mb-3">Form submitted successfully</h2>
+      <p class="text-gray-600 mb-6 max-w-md mx-auto">Thank you. We have received your AML/CTF onboarding form. A member of the Skyline Accounting team will be in touch shortly to confirm next steps, including your ID verification via Seamlss.</p>
+      <div class="info-box max-w-md mx-auto text-left">
+        <strong>What happens next:</strong>
+        <ol class="list-decimal list-inside mt-2 space-y-1">
+          <li>You will receive a Seamlss link to upload your photo ID</li>
+          <li>We will review your information (usually 1–2 business days)</li>
+          <li>We will contact you to confirm your engagement can proceed</li>
+        </ol>
+      </div>
+      <p class="text-sm text-gray-500 mt-6">Questions? Email <a href="mailto:dhimesh@skylineaccounting.com.au" class="text-sky-700 underline">dhimesh@skylineaccounting.com.au</a></p>
+    </div>
+
+  </main>
+
+  <footer class="bg-sky-900 text-sky-300 text-center text-xs py-4 mt-12">
+    Skyline Accounting &nbsp;|&nbsp; AML/CTF Client Onboarding Form &nbsp;|&nbsp; This form is for compliance purposes only
+  </footer>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────────
+  let selectedEntity = null;
+  const personCounts = {};
+
+  const entitySections = {
+    individual:  ['block-individual'],
+    soletrader:  ['block-soletrader'],
+    company:     ['block-company'],
+    trust:       ['block-trust'],
+    partnership: ['block-partnership'],
+    association: ['block-association'],
+  };
+
+  const commonSections = ['block-contact','block-service','block-funds','block-pep','block-additional','block-declaration'];
+  const badgeOffsets = { individual:1, soletrader:2, company:3, trust:3, partnership:2, association:2 };
+
+  // ── Entity selection ─────────────────────────────────────────────────────
+  function selectEntity(type, el) {
+    // Deselect all
+    document.querySelectorAll('.entity-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedEntity = type;
+    document.getElementById('entityError').classList.add('hidden');
+
+    // Hide all entity blocks
+    Object.values(entitySections).flat().forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.remove('active'); }
+    });
+
+    // Show this entity's blocks
+    (entitySections[type] || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.add('active'); }
+    });
+
+    // Show common sections
+    commonSections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.add('active'); }
+    });
+
+    // Update badge numbers based on entity offset
+    updateBadges(type);
+    updateProgress();
+    // Scroll to contact section
+    setTimeout(() => document.getElementById('block-contact').scrollIntoView({behavior:'smooth', block:'start'}), 100);
+  }
+
+  function updateBadges(type) {
+    const offsets = { individual:1, soletrader:2, company:3, trust:3, partnership:2, association:2 };
+    const o = offsets[type] || 1;
+    document.getElementById('badge-service').textContent = o + 2;
+    document.getElementById('badge-funds').textContent = o + 3;
+    document.getElementById('badge-pep').textContent = o + 4;
+    document.getElementById('badge-add').textContent = o + 5;
+    document.getElementById('badge-decl').textContent = o + 6;
+  }
+
+  // ── Progress tracking ─────────────────────────────────────────────────────
+  function updateProgress() {
+    const sections = document.querySelectorAll('.section-block.active');
+    const filled = Array.from(document.querySelectorAll('.section-block.active input:required, .section-block.active select:required, .section-block.active textarea:required'))
+      .filter(el => el.value && el.value.trim()).length;
+    const total = document.querySelectorAll('.section-block.active input:required, .section-block.active select:required, .section-block.active textarea:required').length;
+    const pct = total > 0 ? Math.min(Math.round((filled / total) * 100), 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  document.getElementById('mainForm').addEventListener('input', updateProgress);
+
+  // ── Add/remove person blocks ──────────────────────────────────────────────
+  function addPerson(listId, prefix, label) {
+    if (!personCounts[prefix]) personCounts[prefix] = 1;
+    const idx = personCounts[prefix]++;
+    const list = document.getElementById(listId);
+    const template = document.getElementById(`${prefix}-0`);
+    const clone = template.cloneNode(true);
+    clone.id = `${prefix}-${idx}`;
+    clone.querySelectorAll('input, select, textarea').forEach(el => {
+      el.name = el.name.replace(/_0$/, `_${idx}`);
+      el.value = '';
+    });
+    // Update label
+    const heading = clone.querySelector('.font-semibold');
+    if (heading) heading.textContent = `${label} ${idx + 1}`;
+    // Add remove button
+    const removeBtn = document.createElement('span');
+    removeBtn.className = 'remove-btn';
+    removeBtn.textContent = '✕ Remove';
+    removeBtn.onclick = () => clone.remove();
+    clone.appendChild(removeBtn);
+    clone.classList.add('fade-in');
+    list.appendChild(clone);
+  }
+
+  // ── Trust trustee toggle ──────────────────────────────────────────────────
+  function toggleTrusteeType(val) {
+    document.getElementById('trustee-individual').style.display = val === 'individual' ? 'block' : 'none';
+    document.getElementById('trustee-corporate').style.display = val === 'corporate' ? 'block' : 'none';
+  }
+
+  // ── PEP detail toggle ─────────────────────────────────────────────────────
+  function togglePepDetail(val) {
+    document.getElementById('pep-detail').style.display = val === 'yes' ? 'block' : 'none';
+    document.getElementById('pep-unsure').style.display = val === 'unsure' ? 'block' : 'none';
+  }
+
+  // ── Additional entities toggle ────────────────────────────────────────────
+  function toggleAdditional(val) {
+    document.getElementById('additional-detail').style.display = val === 'yes' ? 'block' : 'none';
+  }
+
+  // ── Set today's date ──────────────────────────────────────────────────────
+  document.getElementById('decl_date').valueAsDate = new Date();
+
+  // ── Form submit ───────────────────────────────────────────────────────────
+  document.getElementById('mainForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!selectedEntity) {
+      document.getElementById('entityError').classList.remove('hidden');
+      document.getElementById('entityGrid').scrollIntoView({behavior:'smooth'});
+      return;
+    }
+    // Check declarations
+    const decls = ['decl_1','decl_2','decl_3','decl_4'];
+    const allChecked = decls.every(id => document.getElementById(id).checked);
+    if (!allChecked) {
+      alert('Please confirm all declarations before submitting.');
+      return;
+    }
+    // Simulate submission
+    document.getElementById('mainForm').style.display = 'none';
+    const success = document.getElementById('successScreen');
+    success.style.display = 'block';
+    success.classList.add('fade-in');
+    document.getElementById('progressFill').style.width = '100%';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+</script>
+</body>
+</html>
