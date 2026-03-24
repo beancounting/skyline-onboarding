@@ -1,919 +1,1255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Skyline Accounting — AML/CTF Client Onboarding</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            sky: {
-              900: '#0f2a4a',
-              800: '#1a3d6b',
-              700: '#1e4d8c',
-              600: '#2563a8',
-              500: '#3b82c4',
-              100: '#e8f0fa',
-              50:  '#f4f8fd',
-            },
-            slate: { 50: '#f8fafc' }
-          },
-          fontFamily: { sans: ['Inter', 'sans-serif'] }
-        }
-      }
-    }
-  </script>
-  <style>
-    .section-block { display: none; }
-    .section-block.active { display: block; }
-    .entity-card { transition: all 0.15s ease; cursor: pointer; }
-    .entity-card.selected { border-color: #2563a8; background: #e8f0fa; }
-    .entity-card:hover:not(.selected) { border-color: #93c5fd; background: #f4f8fd; }
-    .add-person-row { transition: all 0.2s ease; }
-    .fade-in { animation: fadeIn 0.25s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .step-dot { transition: all 0.2s; }
-    .required-star { color: #dc2626; }
-    input[type="text"], input[type="email"], input[type="tel"], input[type="date"],
-    select, textarea {
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      width: 100%;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.15s;
-      background: white;
-    }
-    input:focus, select:focus, textarea:focus { border-color: #2563a8; box-shadow: 0 0 0 3px rgba(37,99,168,0.1); }
-    label { font-size: 0.85rem; font-weight: 500; color: #374151; display: block; margin-bottom: 0.3rem; }
-    .form-group { margin-bottom: 1.1rem; }
-    .section-card { background: white; border-radius: 0.75rem; padding: 1.75rem; margin-bottom: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,0.07); border: 1px solid #e5e7eb; }
-    .section-title { font-size: 1rem; font-weight: 700; color: #0f2a4a; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; border-bottom: 2px solid #e8f0fa; padding-bottom: 0.75rem; }
-    .badge { display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #1a3d6b; color: white; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
-    .pep-highlight { background: #fffbeb; border: 1px solid #fbbf24; border-radius: 0.5rem; padding: 0.85rem 1rem; font-size: 0.82rem; color: #92400e; }
-    .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 0.85rem 1rem; font-size: 0.82rem; color: #1e40af; }
-    .person-block { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; position: relative; }
-    .remove-btn { position: absolute; top: 0.75rem; right: 0.75rem; color: #ef4444; font-size: 0.8rem; cursor: pointer; font-weight: 500; }
-    .remove-btn:hover { color: #b91c1c; }
-    .add-btn { display: inline-flex; align-items: center; gap: 0.4rem; color: #2563a8; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
-    .add-btn:hover { color: #1a3d6b; }
-    .progress-bar { height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #1a3d6b, #3b82c4); border-radius: 2px; transition: width 0.4s ease; }
-    .submit-btn { background: linear-gradient(135deg, #1a3d6b, #2563a8); color: white; padding: 0.85rem 2.5rem; border-radius: 0.5rem; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; width: 100%; transition: opacity 0.2s; }
-    .submit-btn:hover { opacity: 0.92; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-    @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
-    .entity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; }
-    .declaration-check { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.85rem; color: #374151; }
-    .declaration-check input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: 0.1rem; flex-shrink: 0; accent-color: #1a3d6b; }
-    .success-screen { display: none; text-align: center; padding: 3rem 1rem; }
-    .entity-icon { font-size: 1.75rem; margin-bottom: 0.4rem; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Skyline Accounting — AML/CTF Client Onboarding</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      brand: { 950:'#07172e', 900:'#0f2a4a', 800:'#1a3d6b', 700:'#1e4d8c', 600:'#2563a8', 400:'#60a5d8', 100:'#dbeafe', 50:'#eff6ff' }
+    },
+    fontFamily: { sans: ['Inter','sans-serif'] }
+  }}
+}
+</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
+
+/* Wizard */
+.step-pane { display: none; }
+.step-pane.active { display: block; }
+
+/* Cards */
+.card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+/* Form inputs */
+.field label { font-size: 0.8rem; font-weight: 600; color: #374151; display: block; margin-bottom: 4px; }
+.field input, .field select, .field textarea {
+  width: 100%; border: 1.5px solid #d1d5db; border-radius: 8px;
+  padding: 9px 12px; font-size: 0.875rem; color: #111827;
+  outline: none; transition: border-color .15s, box-shadow .15s; background: white;
+  font-family: 'Inter', sans-serif;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: #2563a8; box-shadow: 0 0 0 3px rgba(37,99,168,0.1);
+}
+.field input.error, .field select.error, .field textarea.error { border-color: #ef4444; }
+.field .err-msg { font-size: 0.75rem; color: #ef4444; margin-top: 3px; display: none; }
+.field.has-error .err-msg { display: block; }
+.req { color: #ef4444; }
+
+/* Buttons */
+.btn-primary { background: linear-gradient(135deg, #1a3d6b, #2563a8); color: white; border: none; border-radius: 8px; padding: 11px 24px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: opacity .15s; }
+.btn-primary:hover { opacity: .9; }
+.btn-secondary { background: white; color: #374151; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 10px 22px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background .15s; }
+.btn-secondary:hover { background: #f9fafb; }
+.btn-ghost { background: none; border: none; color: #2563a8; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 4px 0; }
+.btn-ghost:hover { text-decoration: underline; }
+.btn-danger { background: none; border: none; color: #ef4444; font-size: 0.8rem; cursor: pointer; }
+
+/* Entity cards */
+.entity-card { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; background: white; transition: border-color .15s; }
+.entity-card:hover { border-color: #93c5fd; }
+
+/* Type selector */
+.type-tile { border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all .15s; background: white; }
+.type-tile:hover { border-color: #60a5d8; background: #eff6ff; }
+.type-tile.selected { border-color: #2563a8; background: #dbeafe; }
+.type-tile .tile-icon { font-size: 1.6rem; margin-bottom: 4px; }
+.type-tile .tile-label { font-size: 0.8rem; font-weight: 600; color: #1e293b; }
+.type-tile .tile-sub { font-size: 0.7rem; color: #6b7280; margin-top: 2px; }
+
+/* Step indicator */
+.step-indicator { display: flex; align-items: center; gap: 0; }
+.step-indicator .si-item { display: flex; align-items: center; }
+.si-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; transition: all .2s; }
+.si-dot.done { background: #2563a8; color: white; }
+.si-dot.active { background: #1a3d6b; color: white; box-shadow: 0 0 0 4px rgba(37,99,168,.2); }
+.si-dot.pending { background: #e2e8f0; color: #94a3b8; }
+.si-line { width: 24px; height: 2px; background: #e2e8f0; flex-shrink: 0; }
+.si-line.done { background: #2563a8; }
+.si-label { font-size: 0.7rem; font-weight: 500; margin-top: 4px; text-align: center; white-space: nowrap; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 24px 16px; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: white; border-radius: 14px; width: 100%; max-width: 620px; max-height: calc(100vh - 48px); overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); margin: auto; }
+.modal-header { position: sticky; top: 0; background: white; border-bottom: 1px solid #e2e8f0; padding: 18px 22px 14px; border-radius: 14px 14px 0 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; }
+.modal-body { padding: 22px; }
+.modal-footer { position: sticky; bottom: 0; background: white; border-top: 1px solid #e2e8f0; padding: 14px 22px; border-radius: 0 0 14px 14px; display: flex; gap: 10px; justify-content: flex-end; }
+
+/* Person picker */
+.person-picker { border: 1.5px solid #d1d5db; border-radius: 8px; overflow: hidden; }
+.pp-existing { padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: background .12s; }
+.pp-existing:hover { background: #f0f9ff; }
+.pp-existing input[type=radio] { accent-color: #2563a8; }
+.pp-new-toggle { padding: 10px 12px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #2563a8; font-size: 0.85rem; font-weight: 600; }
+.pp-new-form { padding: 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: none; }
+
+/* Review */
+.review-section { margin-bottom: 20px; }
+.review-section h4 { font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.review-row { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+.review-row .rl { color: #6b7280; min-width: 160px; flex-shrink: 0; }
+.review-row .rv { color: #111827; font-weight: 500; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+.badge-company { background: #dbeafe; color: #1e40af; }
+.badge-trust { background: #ede9fe; color: #6d28d9; }
+.badge-partnership { background: #d1fae5; color: #065f46; }
+.badge-association { background: #fef3c7; color: #92400e; }
+.badge-individual { background: #f0fdf4; color: #166534; }
+.badge-soletrader { background: #fff7ed; color: #9a3412; }
+.badge-complete { background: #d1fae5; color: #065f46; }
+.badge-incomplete { background: #fef9c3; color: #854d0e; }
+
+/* Info/warning boxes */
+.info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #1e40af; }
+.warn-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #92400e; }
+
+/* Progress */
+.progress-bar { height: 3px; background: #e2e8f0; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #1a3d6b, #60a5d8); transition: width .4s; }
+
+/* Animations */
+.fade-in { animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* Grid helpers */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media(max-width:560px) { .g2, .g3 { grid-template-columns: 1fr; } }
+
+.section-heading { font-size: 0.875rem; font-weight: 700; color: #0f2a4a; margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #eff6ff; }
+
+.check-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
+.check-row input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: #1a3d6b; }
+.check-row label { font-size: 0.85rem; color: #374151; cursor: pointer; font-weight: 400; }
+</style>
 </head>
-<body class="bg-sky-50 font-sans min-h-screen">
+<body class="min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-sky-900 text-white sticky top-0 z-50 shadow-lg">
-    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div>
-        <div class="font-bold text-lg tracking-tight">Skyline Accounting</div>
-        <div class="text-sky-300 text-xs mt-0.5">AML/CTF Client Onboarding — Confidential</div>
-      </div>
-      <div class="text-right hidden sm:block">
-        <div class="text-xs text-sky-300">Need help?</div>
-        <div class="text-sm font-medium">dhimesh@skylineaccounting.com.au</div>
-      </div>
+<!-- Header -->
+<header class="bg-brand-900 text-white shadow-lg">
+  <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div>
+      <div class="font-bold text-lg">Skyline Accounting</div>
+      <div class="text-blue-300 text-xs mt-0.5">AML/CTF Client Onboarding — Confidential</div>
     </div>
-    <!-- Progress bar -->
-    <div class="progress-bar mx-4 mb-0" style="border-radius:0;">
-      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    <div class="text-xs text-blue-300 hidden sm:block text-right">
+      Questions? <span class="text-white">dhimesh@skylineaccounting.com.au</span>
     </div>
-  </header>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressBar" style="width:0%"></div>
+  </div>
+</header>
 
-  <main class="max-w-3xl mx-auto px-4 py-8">
+<main class="max-w-3xl mx-auto px-4 py-8">
 
-    <!-- Intro -->
-    <div class="section-card mb-6">
-      <h1 class="text-xl font-bold text-sky-900 mb-2">Client Onboarding — AML/CTF Declaration</h1>
-      <p class="text-sm text-gray-600 leading-relaxed">
-        As an accounting practice regulated under Australia's Anti-Money Laundering and Counter-Terrorism
-        Financing Act 2006 (AML/CTF Act), Skyline Accounting is required to collect and verify certain
-        information about every client before providing services. This form is confidential and used for
-        compliance purposes only. Please complete all required fields marked <span class="required-star">*</span>.
+  <!-- ── STEP INDICATOR ────────────────────────────────────────────────── -->
+  <div class="card p-4 mb-6 overflow-x-auto">
+    <div class="step-indicator min-w-max mx-auto w-fit">
+      <!-- JS renders dots here -->
+    </div>
+    <div id="stepTitle" class="text-center font-semibold text-brand-900 mt-3 text-sm"></div>
+  </div>
+
+  <!-- ══ STEP 1: WELCOME ══════════════════════════════════════════════ -->
+  <div class="step-pane active" id="step-1">
+    <div class="card p-6 fade-in">
+      <h1 class="text-xl font-bold text-brand-900 mb-3">Welcome to Skyline Accounting's Client Onboarding</h1>
+      <p class="text-sm text-gray-600 leading-relaxed mb-4">
+        As a regulated accounting practice under Australia's AML/CTF Act 2006, we are required to
+        collect and verify certain information about every client before providing services.
+        This form is <strong>confidential</strong> and used for compliance purposes only.
       </p>
-      <div class="info-box mt-4">
-        <strong>Before you begin:</strong> You will also be asked to upload a copy of your photo ID
-        (driver's licence or passport) and an ATO document through our Seamlss portal. You will receive
-        a separate link for this step.
+      <p class="text-sm text-gray-600 mb-4">
+        This form supports <strong>multiple entities</strong>. If you have companies, trusts,
+        partnerships or other structures, you can add all of them in one session. People who
+        appear in more than one entity (e.g. as both a director and a trustee) only need to
+        be entered once.
+      </p>
+      <div class="info-box mb-4">
+        <strong>Before you begin:</strong> Have the following ready —
+        photo ID (driver's licence or passport), ABN/ACN for any businesses,
+        and trust deed details if applicable. You will also receive a separate
+        Seamlss link to upload your photo ID for verification.
+      </div>
+      <div class="warn-box mb-6">
+        <strong>Privacy notice:</strong> The information you provide is collected under the
+        <em>Anti-Money Laundering and Counter-Terrorism Financing Act 2006 (Cth)</em>.
+        It will be stored securely, accessed only by authorised Skyline Accounting staff,
+        and retained for 7 years as required by law. You have the right to request access
+        to your information at any time.
+      </div>
+      <div class="flex justify-end">
+        <button class="btn-primary" onclick="goStep(2)">Start → </button>
       </div>
     </div>
+  </div>
 
-    <form id="mainForm" novalidate>
+  <!-- ══ STEP 2: PRIMARY CONTACT ══════════════════════════════════════ -->
+  <div class="step-pane" id="step-2">
+    <div class="card p-6 fade-in">
+      <h2 class="text-lg font-bold text-brand-900 mb-1">About you</h2>
+      <p class="text-sm text-gray-500 mb-5">This is the primary contact person for this onboarding. Tell us about yourself as an individual.</p>
 
-      <!-- ── STEP 1: ENTITY TYPE ─────────────────────────────────────────── -->
-      <div class="section-card">
-        <div class="section-title"><span class="badge">1</span> Tell us about your entity type</div>
-        <p class="text-sm text-gray-500 mb-4">Select the option that best describes how you will be engaging with us. If you have multiple entities (e.g. you personally AND a company), you will be able to add them after completing this form.</p>
-        <div class="entity-grid" id="entityGrid">
-          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="individual" onclick="selectEntity('individual', this)">
-            <div class="entity-icon">👤</div>
-            <div class="font-semibold text-sm text-gray-800">Individual</div>
-            <div class="text-xs text-gray-500 mt-1">Personal services</div>
-          </div>
-          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="soletrader" onclick="selectEntity('soletrader', this)">
-            <div class="entity-icon">🧾</div>
-            <div class="font-semibold text-sm text-gray-800">Sole Trader</div>
-            <div class="text-xs text-gray-500 mt-1">ABN, trading as yourself</div>
-          </div>
-          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="company" onclick="selectEntity('company', this)">
-            <div class="entity-icon">🏢</div>
-            <div class="font-semibold text-sm text-gray-800">Company</div>
-            <div class="text-xs text-gray-500 mt-1">Pty Ltd, Ltd, etc.</div>
-          </div>
-          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="trust" onclick="selectEntity('trust', this)">
-            <div class="entity-icon">🔒</div>
-            <div class="font-semibold text-sm text-gray-800">Trust</div>
-            <div class="text-xs text-gray-500 mt-1">Family, unit, discretionary</div>
-          </div>
-          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="partnership" onclick="selectEntity('partnership', this)">
-            <div class="entity-icon">🤝</div>
-            <div class="font-semibold text-sm text-gray-800">Partnership</div>
-            <div class="text-xs text-gray-500 mt-1">Two or more partners</div>
-          </div>
-          <div class="entity-card border-2 border-gray-200 rounded-xl p-4 text-center" data-entity="association" onclick="selectEntity('association', this)">
-            <div class="entity-icon">🏛️</div>
-            <div class="font-semibold text-sm text-gray-800">Association</div>
-            <div class="text-xs text-gray-500 mt-1">Club, NFP, incorporated body</div>
-          </div>
-        </div>
-        <div id="entityError" class="text-red-500 text-xs mt-2 hidden">Please select an entity type to continue.</div>
+      <div class="g2">
+        <div class="field"><label>First name <span class="req">*</span></label><input type="text" id="c_first" placeholder="Given name"/><div class="err-msg">Required</div></div>
+        <div class="field"><label>Last name <span class="req">*</span></label><input type="text" id="c_last" placeholder="Family name"/><div class="err-msg">Required</div></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="c_email" placeholder="your@email.com"/><div class="err-msg">Enter a valid email</div></div>
+        <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" id="c_phone" placeholder="04xx xxx xxx"/><div class="err-msg">Required</div></div>
       </div>
 
-      <!-- ── STEP 2: CONTACT DETAILS (always shown after selection) ─────── -->
-      <div class="section-block active" id="block-contact">
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">2</span> Primary contact details</div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>First name <span class="required-star">*</span></label>
-              <input type="text" name="firstName" placeholder="Given name" required />
-            </div>
-            <div class="form-group">
-              <label>Last name <span class="required-star">*</span></label>
-              <input type="text" name="lastName" placeholder="Family name" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Preferred name (if different)</label>
-            <input type="text" name="preferredName" placeholder="e.g. nickname or trading name" />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Email address <span class="required-star">*</span></label>
-              <input type="email" name="email" placeholder="your@email.com" required />
-            </div>
-            <div class="form-group">
-              <label>Phone number <span class="required-star">*</span></label>
-              <input type="tel" name="phone" placeholder="04xx xxx xxx" required />
-            </div>
-          </div>
+      <div class="section-heading">Your personal details</div>
+      <div class="field mb-3"><label>Full legal name (as on your ID) <span class="req">*</span></label><input type="text" id="c_legal" placeholder="Full legal name"/><div class="err-msg">Required</div></div>
+      <div class="g2">
+        <div class="field"><label>Date of birth <span class="req">*</span></label><input type="date" id="c_dob"/><div class="err-msg">Required</div></div>
+        <div class="field"><label>Country of birth <span class="req">*</span></label><input type="text" id="c_cob" placeholder="e.g. Australia"/><div class="err-msg">Required</div></div>
+      </div>
+      <div class="field mb-3"><label>Residential address <span class="req">*</span></label><input type="text" id="c_addr" placeholder="Street address"/><div class="err-msg">Required</div></div>
+      <div class="g3">
+        <div class="field"><label>Suburb <span class="req">*</span></label><input type="text" id="c_suburb"/><div class="err-msg">Required</div></div>
+        <div class="field"><label>State <span class="req">*</span></label>
+          <select id="c_state"><option value="">Select</option><option>ACT</option><option>NSW</option><option>NT</option><option>QLD</option><option>SA</option><option>TAS</option><option>VIC</option><option>WA</option></select>
+          <div class="err-msg">Required</div>
         </div>
+        <div class="field"><label>Postcode <span class="req">*</span></label><input type="text" id="c_post" maxlength="4" placeholder="0000"/><div class="err-msg">Required</div></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Occupation <span class="req">*</span></label><input type="text" id="c_occ" placeholder="e.g. Accountant"/><div class="err-msg">Required</div></div>
+        <div class="field"><label>Employer</label><input type="text" id="c_emp" placeholder="Employer or business name"/></div>
       </div>
 
-      <!-- ══ INDIVIDUAL ══════════════════════════════════════════════════════ -->
-      <div class="section-block" id="block-individual">
+      <div class="flex justify-between mt-6">
+        <button class="btn-secondary" onclick="goStep(1)">← Back</button>
+        <button class="btn-primary" onclick="saveContact()">Continue →</button>
+      </div>
+    </div>
+  </div>
 
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">3</span> Individual details</div>
-          <div class="form-group">
-            <label>Full legal name (as it appears on your ID) <span class="required-star">*</span></label>
-            <input type="text" name="ind_fullName" placeholder="Full legal name" required />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Date of birth <span class="required-star">*</span></label>
-              <input type="date" name="ind_dob" required />
-            </div>
-            <div class="form-group">
-              <label>Country of birth <span class="required-star">*</span></label>
-              <input type="text" name="ind_countryBirth" placeholder="e.g. Australia" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Residential address <span class="required-star">*</span></label>
-            <input type="text" name="ind_address" placeholder="Street address" required />
-          </div>
-          <div class="grid-3">
-            <div class="form-group">
-              <label>Suburb <span class="required-star">*</span></label>
-              <input type="text" name="ind_suburb" required />
-            </div>
-            <div class="form-group">
-              <label>State <span class="required-star">*</span></label>
-              <select name="ind_state" required>
-                <option value="">Select</option>
-                <option>ACT</option><option>NSW</option><option>NT</option>
-                <option>QLD</option><option>SA</option><option>TAS</option>
-                <option>VIC</option><option>WA</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Postcode <span class="required-star">*</span></label>
-              <input type="text" name="ind_postcode" placeholder="0000" maxlength="4" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Country of residence <span class="required-star">*</span></label>
-            <input type="text" name="ind_countryResidence" placeholder="e.g. Australia" value="Australia" required />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Occupation / Job title <span class="required-star">*</span></label>
-              <input type="text" name="ind_occupation" placeholder="e.g. Registered Nurse" required />
-            </div>
-            <div class="form-group">
-              <label>Employer name</label>
-              <input type="text" name="ind_employer" placeholder="e.g. Queensland Health" />
-            </div>
-          </div>
-        </div>
+  <!-- ══ STEP 3: ENTITY HUB ════════════════════════════════════════════ -->
+  <div class="step-pane" id="step-3">
+    <div class="card p-6 fade-in">
+      <h2 class="text-lg font-bold text-brand-900 mb-1">Your entities</h2>
+      <p class="text-sm text-gray-500 mb-5">Add every company, trust, partnership or association you want Skyline Accounting to provide services to. You can add as many as you need.</p>
 
+      <!-- Entity list -->
+      <div id="entityList" class="space-y-3 mb-5"></div>
+
+      <!-- Add entity button -->
+      <button class="w-full border-2 border-dashed border-brand-400 rounded-xl py-4 text-brand-700 font-semibold text-sm hover:border-brand-600 hover:bg-brand-50 transition-colors" onclick="openAddEntity()">
+        + Add an entity (company, trust, partnership, association)
+      </button>
+
+      <div class="info-box mt-4 text-xs">
+        <strong>Tip:</strong> If you have a company that is the trustee of a trust, add the company first — then when you add the trust you can select it as the corporate trustee without re-entering details.
       </div>
 
-      <!-- ══ SOLE TRADER ═════════════════════════════════════════════════════ -->
-      <div class="section-block" id="block-soletrader">
+      <div class="flex justify-between mt-6">
+        <button class="btn-secondary" onclick="goStep(2)">← Back</button>
+        <button class="btn-primary" onclick="goStep(4)">Continue →</button>
+      </div>
+    </div>
+  </div>
 
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">3</span> Individual details (Sole Trader)</div>
-          <div class="form-group">
-            <label>Full legal name (as it appears on your ID) <span class="required-star">*</span></label>
-            <input type="text" name="st_fullName" placeholder="Full legal name" required />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Date of birth <span class="required-star">*</span></label>
-              <input type="date" name="st_dob" required />
-            </div>
-            <div class="form-group">
-              <label>Country of birth <span class="required-star">*</span></label>
-              <input type="text" name="st_countryBirth" placeholder="e.g. Australia" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Residential address <span class="required-star">*</span></label>
-            <input type="text" name="st_address" placeholder="Street address" required />
-          </div>
-          <div class="grid-3">
-            <div class="form-group">
-              <label>Suburb <span class="required-star">*</span></label>
-              <input type="text" name="st_suburb" required />
-            </div>
-            <div class="form-group">
-              <label>State <span class="required-star">*</span></label>
-              <select name="st_state" required>
-                <option value="">Select</option>
-                <option>ACT</option><option>NSW</option><option>NT</option>
-                <option>QLD</option><option>SA</option><option>TAS</option>
-                <option>VIC</option><option>WA</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Postcode <span class="required-star">*</span></label>
-              <input type="text" name="st_postcode" placeholder="0000" maxlength="4" required />
-            </div>
-          </div>
+  <!-- ══ STEP 4: SERVICES ══════════════════════════════════════════════ -->
+  <div class="step-pane" id="step-4">
+    <div class="card p-6 fade-in">
+      <h2 class="text-lg font-bold text-brand-900 mb-1">Services requested</h2>
+      <p class="text-sm text-gray-500 mb-5">Tell us what you need and why.</p>
+
+      <div class="field mb-4">
+        <label>Which services are you seeking? <span class="req">*</span></label>
+        <div class="space-y-2 mt-1">
+          <label class="check-row"><input type="checkbox" name="svc" value="tax"/> Tax returns and compliance</label>
+          <label class="check-row"><input type="checkbox" name="svc" value="accounts"/> Financial statements / management accounts</label>
+          <label class="check-row"><input type="checkbox" name="svc" value="advisory"/> Business advisory</label>
+          <label class="check-row"><input type="checkbox" name="svc" value="structure"/> Company / trust structuring or restructuring</label>
+          <label class="check-row"><input type="checkbox" name="svc" value="regoffice"/> Registered office address service</label>
+          <label class="check-row"><input type="checkbox" name="svc" value="buysell"/> Buying or selling a business or entity</label>
+          <label class="check-row"><input type="checkbox" name="svc" value="finance"/> Finance or loan application assistance</label>
+          <label class="check-row"><input type="checkbox" name="svc" value="other"/> Other</label>
         </div>
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">4</span> Business details</div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Business / Trading name <span class="required-star">*</span></label>
-              <input type="text" name="st_bizName" placeholder="e.g. Smith Plumbing" required />
-            </div>
-            <div class="form-group">
-              <label>ABN <span class="required-star">*</span></label>
-              <input type="text" name="st_abn" placeholder="xx xxx xxx xxx" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Business address (if different from residential)</label>
-            <input type="text" name="st_bizAddress" placeholder="Street address" />
-          </div>
-          <div class="form-group">
-            <label>Nature of business / industry <span class="required-star">*</span></label>
-            <input type="text" name="st_bizNature" placeholder="e.g. Plumbing and gas fitting" required />
-          </div>
-        </div>
-
+        <div id="svc_err" class="text-red-500 text-xs mt-1 hidden">Please select at least one service.</div>
+      </div>
+      <div class="field mb-4">
+        <label>Why are you seeking these services? <span class="req">*</span></label>
+        <textarea id="svc_reason" rows="3" placeholder="e.g. Annual tax and accounts for our investment trust, exploring restructuring options..."></textarea>
+        <div class="err-msg">Required</div>
+      </div>
+      <div class="field">
+        <label>Expected frequency or value of transactions (if applicable)</label>
+        <input type="text" id="svc_freq" placeholder="e.g. Annual returns, occasional advisory"/>
       </div>
 
-      <!-- ══ COMPANY ══════════════════════════════════════════════════════════ -->
-      <div class="section-block" id="block-company">
+      <div class="flex justify-between mt-6">
+        <button class="btn-secondary" onclick="goStep(3)">← Back</button>
+        <button class="btn-primary" onclick="saveServices()">Continue →</button>
+      </div>
+    </div>
+  </div>
 
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">3</span> Company details</div>
-          <div class="form-group">
-            <label>Full company name (as registered with ASIC) <span class="required-star">*</span></label>
-            <input type="text" name="co_name" placeholder="e.g. Smith Holdings Pty Ltd" required />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>ACN <span class="required-star">*</span></label>
-              <input type="text" name="co_acn" placeholder="xxx xxx xxx" required />
-            </div>
-            <div class="form-group">
-              <label>ABN (if different)</label>
-              <input type="text" name="co_abn" placeholder="xx xxx xxx xxx" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Registered address <span class="required-star">*</span></label>
-            <input type="text" name="co_regAddress" placeholder="Registered office address" required />
-          </div>
-          <div class="form-group">
-            <label>Principal place of business (if different from registered address)</label>
-            <input type="text" name="co_bizAddress" placeholder="Main operating address" />
-          </div>
-          <div class="form-group">
-            <label>Nature of business / industry <span class="required-star">*</span></label>
-            <input type="text" name="co_bizNature" placeholder="e.g. Property investment and development" required />
-          </div>
-          <div class="form-group">
-            <label>Country of incorporation <span class="required-star">*</span></label>
-            <input type="text" name="co_country" placeholder="e.g. Australia" value="Australia" required />
-          </div>
+  <!-- ══ STEP 5: SOURCE OF FUNDS ════════════════════════════════════════ -->
+  <div class="step-pane" id="step-5">
+    <div class="card p-6 fade-in">
+      <h2 class="text-lg font-bold text-brand-900 mb-1">Source of funds and wealth</h2>
+      <p class="text-sm text-gray-500 mb-5">We are required by law to understand where the funds involved in our engagement originate from.</p>
+
+      <div class="field mb-4">
+        <label>Source of funds — where do the funds for this engagement come from? <span class="req">*</span></label>
+        <div class="space-y-2 mt-1 mb-3">
+          <label class="check-row"><input type="checkbox" name="fnd" value="salary"/> Salary / wages</label>
+          <label class="check-row"><input type="checkbox" name="fnd" value="business"/> Business income / profits</label>
+          <label class="check-row"><input type="checkbox" name="fnd" value="investment"/> Investment income (dividends, rent, interest)</label>
+          <label class="check-row"><input type="checkbox" name="fnd" value="sale"/> Proceeds from sale of asset or business</label>
+          <label class="check-row"><input type="checkbox" name="fnd" value="inheritance"/> Inheritance or gift</label>
+          <label class="check-row"><input type="checkbox" name="fnd" value="loan"/> Loan or financing facility</label>
+          <label class="check-row"><input type="checkbox" name="fnd" value="savings"/> Personal savings</label>
+          <label class="check-row"><input type="checkbox" name="fnd" value="other_fnd"/> Other</label>
         </div>
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">4</span> Directors</div>
-          <p class="text-sm text-gray-500 mb-4">List all current directors of the company.</p>
-          <div id="directors-list">
-            <div class="person-block" id="director-0">
-              <div class="font-semibold text-sm text-sky-900 mb-3">Director 1</div>
-              <div class="grid-2">
-                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="dir_name_0" required /></div>
-                <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="dir_dob_0" required /></div>
-              </div>
-              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="dir_address_0" required /></div>
-              <div class="form-group"><label>Country of residence <span class="required-star">*</span></label><input type="text" name="dir_country_0" value="Australia" required /></div>
-            </div>
-          </div>
-          <div class="add-btn" onclick="addPerson('directors-list', 'director', 'Director')">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add another director
-          </div>
-        </div>
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">5</span> Beneficial owners</div>
-          <p class="text-sm text-gray-500 mb-4">List all individuals who directly or indirectly own 25% or more of the company, or who exercise effective control.</p>
-          <div id="benefowners-list">
-            <div class="person-block" id="benefowner-0">
-              <div class="font-semibold text-sm text-sky-900 mb-3">Beneficial Owner 1</div>
-              <div class="grid-2">
-                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="bo_name_0" required /></div>
-                <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="bo_dob_0" required /></div>
-              </div>
-              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="bo_address_0" required /></div>
-              <div class="form-group"><label>% ownership / nature of control <span class="required-star">*</span></label><input type="text" name="bo_ownership_0" placeholder="e.g. 50% shareholder" required /></div>
-            </div>
-          </div>
-          <div class="add-btn" onclick="addPerson('benefowners-list', 'benefowner', 'Beneficial Owner')">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add another beneficial owner
-          </div>
-          <div class="info-box mt-4">
-            <strong>Tip:</strong> If the company has no individual who owns 25%+ (e.g. widely held), please describe the ownership structure and list the senior managing official (CEO or equivalent).
-          </div>
-        </div>
-
+        <div id="fnd_err" class="text-red-500 text-xs hidden">Please select at least one option.</div>
+        <textarea id="fnd_detail" rows="2" placeholder="Any additional detail about the source of funds..."></textarea>
       </div>
 
-      <!-- ══ TRUST ═══════════════════════════════════════════════════════════ -->
-      <div class="section-block" id="block-trust">
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">3</span> Trust details</div>
-          <div class="form-group">
-            <label>Full name of the trust <span class="required-star">*</span></label>
-            <input type="text" name="tr_name" placeholder="e.g. Smith Family Trust" required />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Type of trust <span class="required-star">*</span></label>
-              <select name="tr_type" required>
-                <option value="">Select</option>
-                <option>Discretionary (Family) Trust</option>
-                <option>Unit Trust</option>
-                <option>Bare Trust</option>
-                <option>Testamentary Trust</option>
-                <option>Hybrid Trust</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Date trust was established <span class="required-star">*</span></label>
-              <input type="date" name="tr_date" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>ABN (if applicable)</label>
-            <input type="text" name="tr_abn" placeholder="xx xxx xxx xxx" />
-          </div>
-          <div class="form-group">
-            <label>Country where trust is established <span class="required-star">*</span></label>
-            <input type="text" name="tr_country" placeholder="e.g. Australia" value="Australia" required />
-          </div>
-          <div class="form-group">
-            <label>Purpose / nature of the trust <span class="required-star">*</span></label>
-            <input type="text" name="tr_purpose" placeholder="e.g. Family asset management and investment" required />
-          </div>
-        </div>
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">4</span> Trustee details</div>
-          <div class="form-group">
-            <label>Type of trustee <span class="required-star">*</span></label>
-            <select name="tr_trusteeType" onchange="toggleTrusteeType(this.value)" required>
-              <option value="">Select</option>
-              <option value="individual">Individual trustee(s)</option>
-              <option value="corporate">Corporate trustee (a company)</option>
-            </select>
-          </div>
-          <div id="trustee-individual" style="display:none">
-            <div id="trustees-list">
-              <div class="person-block" id="trustee-0">
-                <div class="font-semibold text-sm text-sky-900 mb-3">Individual Trustee 1</div>
-                <div class="grid-2">
-                  <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="tr_trustee_name_0" /></div>
-                  <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="tr_trustee_dob_0" /></div>
-                </div>
-                <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="tr_trustee_address_0" /></div>
-              </div>
-            </div>
-            <div class="add-btn" onclick="addPerson('trustees-list', 'trustee', 'Individual Trustee')">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              Add another trustee
-            </div>
-          </div>
-          <div id="trustee-corporate" style="display:none">
-            <div class="grid-2">
-              <div class="form-group"><label>Corporate trustee name <span class="required-star">*</span></label><input type="text" name="tr_corp_name" placeholder="e.g. Smith Holdings Pty Ltd" /></div>
-              <div class="form-group"><label>ACN <span class="required-star">*</span></label><input type="text" name="tr_corp_acn" placeholder="xxx xxx xxx" /></div>
-            </div>
-            <p class="text-sm text-gray-500 mt-2">Directors and beneficial owners of the corporate trustee will also need to be identified. Please list them below.</p>
-            <div id="corp-trustees-list" class="mt-3">
-              <div class="person-block" id="corp-trustee-0">
-                <div class="font-semibold text-sm text-sky-900 mb-3">Corporate Trustee — Director 1</div>
-                <div class="grid-2">
-                  <div class="form-group"><label>Full legal name</label><input type="text" name="tr_corp_dir_name_0" /></div>
-                  <div class="form-group"><label>Date of birth</label><input type="date" name="tr_corp_dir_dob_0" /></div>
-                </div>
-                <div class="form-group"><label>Residential address</label><input type="text" name="tr_corp_dir_address_0" /></div>
-              </div>
-            </div>
-            <div class="add-btn" onclick="addPerson('corp-trustees-list', 'corp-trustee', 'Corporate Trustee — Director')">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              Add another director
-            </div>
-          </div>
-        </div>
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">5</span> Beneficiaries</div>
-          <div class="form-group">
-            <label>How are beneficiaries determined? <span class="required-star">*</span></label>
-            <select name="tr_benefClass" required>
-              <option value="">Select</option>
-              <option>Named individuals listed in the trust deed</option>
-              <option>Class of beneficiaries (e.g. all family members of settlor)</option>
-              <option>Both named individuals and a class</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Please list named beneficiaries (or describe the class) <span class="required-star">*</span></label>
-            <textarea name="tr_benefList" rows="3" placeholder="e.g. John Smith, Jane Smith and their children as defined in the trust deed..." required></textarea>
-          </div>
-          <div class="form-group">
-            <label>Settlor full name (person who established the trust)</label>
-            <input type="text" name="tr_settlor" placeholder="Full legal name of settlor" />
-          </div>
-        </div>
-
+      <div class="field">
+        <label>Source of wealth — how has your overall wealth been accumulated? <span class="req">*</span></label>
+        <textarea id="fnd_wealth" rows="3" placeholder="e.g. 20 years employment as an engineer, rental income from 2 investment properties, sale of business in 2019..."></textarea>
+        <div class="err-msg">Required</div>
       </div>
 
-      <!-- ══ PARTNERSHIP ══════════════════════════════════════════════════════ -->
-      <div class="section-block" id="block-partnership">
+      <div class="flex justify-between mt-6">
+        <button class="btn-secondary" onclick="goStep(4)">← Back</button>
+        <button class="btn-primary" onclick="saveFunds()">Continue →</button>
+      </div>
+    </div>
+  </div>
 
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">3</span> Partnership details</div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>Partnership name <span class="required-star">*</span></label>
-              <input type="text" name="pt_name" placeholder="e.g. Smith & Jones" required />
-            </div>
-            <div class="form-group">
-              <label>ABN <span class="required-star">*</span></label>
-              <input type="text" name="pt_abn" placeholder="xx xxx xxx xxx" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Nature of business <span class="required-star">*</span></label>
-            <input type="text" name="pt_nature" placeholder="e.g. Building and construction" required />
-          </div>
-          <div class="form-group">
-            <label>Principal place of business <span class="required-star">*</span></label>
-            <input type="text" name="pt_address" required />
-          </div>
-        </div>
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">4</span> Partners</div>
-          <p class="text-sm text-gray-500 mb-4">List all partners in the partnership.</p>
-          <div id="partners-list">
-            <div class="person-block" id="partner-0">
-              <div class="font-semibold text-sm text-sky-900 mb-3">Partner 1</div>
-              <div class="grid-2">
-                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="pt_partner_name_0" required /></div>
-                <div class="form-group"><label>Date of birth <span class="required-star">*</span></label><input type="date" name="pt_partner_dob_0" required /></div>
-              </div>
-              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="pt_partner_address_0" required /></div>
-              <div class="form-group"><label>% interest in partnership</label><input type="text" name="pt_partner_pct_0" placeholder="e.g. 50%" /></div>
-            </div>
-          </div>
-          <div class="add-btn" onclick="addPerson('partners-list', 'partner', 'Partner')">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add another partner
-          </div>
-        </div>
-
+  <!-- ══ STEP 6: PEP ═══════════════════════════════════════════════════ -->
+  <div class="step-pane" id="step-6">
+    <div class="card p-6 fade-in">
+      <h2 class="text-lg font-bold text-brand-900 mb-1">Politically Exposed Person (PEP) declaration</h2>
+      <div class="warn-box mb-5">
+        <strong>What is a PEP?</strong> A Politically Exposed Person holds (or held within the last 2 years) a prominent public position — such as a senator, federal or state minister, judge, senior military officer, ambassador, or senior executive of a government-owned enterprise — in Australia or overseas. Close family members and known associates also qualify.
       </div>
 
-      <!-- ══ ASSOCIATION ══════════════════════════════════════════════════════ -->
-      <div class="section-block" id="block-association">
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">3</span> Association details</div>
-          <div class="form-group">
-            <label>Full name of the association <span class="required-star">*</span></label>
-            <input type="text" name="as_name" placeholder="e.g. Brisbane Cycling Club Inc." required />
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label>ABN (if any)</label>
-              <input type="text" name="as_abn" placeholder="xx xxx xxx xxx" />
-            </div>
-            <div class="form-group">
-              <label>Incorporation number (if incorporated)</label>
-              <input type="text" name="as_incNumber" placeholder="e.g. IA1234567" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Purpose / objects of the association <span class="required-star">*</span></label>
-            <textarea name="as_purpose" rows="2" placeholder="e.g. Promotion of amateur cycling in Queensland" required></textarea>
-          </div>
-          <div class="form-group">
-            <label>Principal address <span class="required-star">*</span></label>
-            <input type="text" name="as_address" required />
-          </div>
+      <div class="field mb-4">
+        <label>Are you — or is any director, trustee, partner, beneficial owner or controlling person associated with any of the entities in this application — a PEP? <span class="req">*</span></label>
+        <div class="space-y-2 mt-2">
+          <label class="check-row"><input type="radio" name="pep" value="no" onchange="togglePep(this.value)"/> No — none of the above apply</label>
+          <label class="check-row"><input type="radio" name="pep" value="yes" onchange="togglePep(this.value)"/> Yes</label>
+          <label class="check-row"><input type="radio" name="pep" value="unsure" onchange="togglePep(this.value)"/> Unsure — I'd like to discuss with Skyline</label>
         </div>
-
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge">4</span> Governing committee members</div>
-          <p class="text-sm text-gray-500 mb-4">List the president, secretary and treasurer (minimum).</p>
-          <div id="committee-list">
-            <div class="person-block" id="committee-0">
-              <div class="grid-2">
-                <div class="form-group"><label>Full legal name <span class="required-star">*</span></label><input type="text" name="as_cm_name_0" required /></div>
-                <div class="form-group"><label>Role (e.g. President) <span class="required-star">*</span></label><input type="text" name="as_cm_role_0" required /></div>
-              </div>
-              <div class="form-group"><label>Residential address <span class="required-star">*</span></label><input type="text" name="as_cm_address_0" required /></div>
-            </div>
-          </div>
-          <div class="add-btn" onclick="addPerson('committee-list', 'committee', 'Committee Member')">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add another committee member
-          </div>
-        </div>
-
+        <div id="pep_err" class="text-red-500 text-xs mt-1 hidden">Please select an option.</div>
       </div>
 
-      <!-- ── STEP: NATURE OF SERVICE (all entities) ──────────────────────── -->
-      <div class="section-block" id="block-service">
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge" id="badge-service">6</span> Services requested</div>
-          <div class="form-group">
-            <label>Which services are you seeking from Skyline Accounting? <span class="required-star">*</span></label>
-            <div class="space-y-2 mt-1">
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_tax" /> Tax returns and compliance</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_accounts" /> Financial statements / management accounts</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_advisory" /> Business advisory</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_structure" /> Company / trust structuring or restructuring</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_regoffice" /> Registered office address</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_buysell" /> Assistance with buying or selling a business or entity</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_finance" /> Assistance with finance or loan applications</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="service_other" /> Other</label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Why are you seeking these services? Please describe briefly. <span class="required-star">*</span></label>
-            <textarea name="service_reason" rows="3" placeholder="e.g. We need annual tax and financial statements for our investment property trust, and are looking to restructure ownership..." required></textarea>
-          </div>
-          <div class="form-group">
-            <label>Expected frequency / value of transactions (if applicable)</label>
-            <input type="text" name="service_frequency" placeholder="e.g. Annual tax return, occasional business advice" />
-          </div>
+      <div id="pep_yes" style="display:none">
+        <div class="field">
+          <label>Please provide details — name, their role and country, and relationship to you or the entity <span class="req">*</span></label>
+          <textarea id="pep_detail" rows="3" placeholder="e.g. Jane Smith, Senator for Queensland, Australia (served 2015–2023). Jane is the sole trustee of the Smith Family Trust."></textarea>
         </div>
       </div>
-
-      <!-- ── STEP: SOURCE OF FUNDS ────────────────────────────────────────── -->
-      <div class="section-block" id="block-funds">
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge" id="badge-funds">7</span> Source of funds and wealth</div>
-          <p class="text-sm text-gray-500 mb-4">We are required by law to understand where the funds involved in our engagement come from. Please answer both questions below honestly and in as much detail as possible.</p>
-          <div class="form-group">
-            <label>Source of funds — Where do the funds for this engagement come from? <span class="required-star">*</span></label>
-            <div class="space-y-2 mt-1 mb-3">
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_salary" /> Salary / wages</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_business" /> Business income</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_investment" /> Investment income (dividends, rent, interest)</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_sale" /> Proceeds from sale of asset or business</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_inheritance" /> Inheritance or gift</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_loan" /> Loan or financing</label>
-              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="funds_other" /> Other</label>
-            </div>
-            <textarea name="funds_detail" rows="2" placeholder="Please provide any additional detail on the source of funds..." required></textarea>
-          </div>
-          <div class="form-group">
-            <label>Source of wealth — How has your overall wealth been accumulated? <span class="required-star">*</span></label>
-            <textarea name="wealth_detail" rows="3" placeholder="e.g. Accumulated over 20 years of employment as a nurse and rental property income from 2 investment properties in Brisbane..." required></textarea>
-          </div>
-        </div>
+      <div id="pep_unsure" style="display:none" class="info-box">
+        No problem — our AML/CTF Compliance Officer will follow up with you on this point before your engagement commences.
       </div>
 
-      <!-- ── STEP: PEP DECLARATION ────────────────────────────────────────── -->
-      <div class="section-block" id="block-pep">
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge" id="badge-pep">8</span> Politically Exposed Person (PEP) declaration</div>
-          <div class="pep-highlight mb-4">
-            <strong>What is a PEP?</strong> A Politically Exposed Person is someone who holds (or has held within the last 2 years) a prominent public position — such as a senior government official, politician, judge, military officer, ambassador, or senior executive of a state-owned enterprise — in Australia or overseas. Close family members and known associates of such persons are also considered PEPs.
-          </div>
-          <div class="form-group">
-            <label>Are you, or is any director, beneficial owner, trustee, partner or controlling person associated with this engagement, a PEP? <span class="required-star">*</span></label>
-            <div class="flex gap-6 mt-2">
-              <label class="flex items-center gap-2 font-normal"><input type="radio" name="pep_status" value="no" onchange="togglePepDetail(this.value)" required /> No</label>
-              <label class="flex items-center gap-2 font-normal"><input type="radio" name="pep_status" value="yes" onchange="togglePepDetail(this.value)" required /> Yes</label>
-              <label class="flex items-center gap-2 font-normal"><input type="radio" name="pep_status" value="unsure" onchange="togglePepDetail(this.value)" required /> Unsure</label>
-            </div>
-          </div>
-          <div id="pep-detail" style="display:none">
-            <div class="form-group">
-              <label>Please provide details — name, their role/position, country, and their relationship to you or the entity <span class="required-star">*</span></label>
-              <textarea name="pep_detail" rows="3" placeholder="e.g. John Smith, former Senator for Queensland, Australia, 2014–2022. John is the sole director of the company."></textarea>
-            </div>
-          </div>
-          <div id="pep-unsure" style="display:none" class="info-box">
-            Our AML/CTF Compliance Officer will follow up with you to clarify this. Please continue with the form.
-          </div>
-        </div>
+      <div class="flex justify-between mt-6">
+        <button class="btn-secondary" onclick="goStep(5)">← Back</button>
+        <button class="btn-primary" onclick="savePep()">Continue →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 7: REVIEW ════════════════════════════════════════════════ -->
+  <div class="step-pane" id="step-7">
+    <div class="card p-6 fade-in">
+      <h2 class="text-lg font-bold text-brand-900 mb-1">Review your information</h2>
+      <p class="text-sm text-gray-500 mb-5">Please check everything below before submitting. Use the edit buttons to go back and make changes.</p>
+      <div id="reviewContent"></div>
+      <div class="flex justify-between mt-6">
+        <button class="btn-secondary" onclick="goStep(6)">← Back</button>
+        <button class="btn-primary" onclick="goStep(8)">Looks good — Continue →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 8: DECLARATION ════════════════════════════════════════════ -->
+  <div class="step-pane" id="step-8">
+    <div class="card p-6 fade-in">
+      <h2 class="text-lg font-bold text-brand-900 mb-1">Declaration</h2>
+      <p class="text-sm text-gray-500 mb-5">Please read and confirm each statement before submitting.</p>
+
+      <div class="space-y-1 mb-6">
+        <label class="check-row"><input type="checkbox" id="d1"/> <span>I confirm that all information in this form is true, accurate and complete to the best of my knowledge.</span></label>
+        <label class="check-row"><input type="checkbox" id="d2"/> <span>I understand that Skyline Accounting is required by law to collect and verify this information, and that providing false or misleading information may be a criminal offence.</span></label>
+        <label class="check-row"><input type="checkbox" id="d3"/> <span>I understand that services cannot commence until identity verification is complete, and that Skyline Accounting may request additional information at any time.</span></label>
+        <label class="check-row"><input type="checkbox" id="d4"/> <span>I will notify Skyline Accounting promptly if any information in this form changes.</span></label>
       </div>
 
-      <!-- ── STEP: ADDITIONAL ENTITIES ───────────────────────────────────── -->
-      <div class="section-block" id="block-additional">
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge" id="badge-add">9</span> Additional entities</div>
-          <div class="form-group">
-            <label>Do you have other entities (companies, trusts, partnerships) that you would also like Skyline Accounting to provide services to? <span class="required-star">*</span></label>
-            <div class="flex gap-6 mt-2">
-              <label class="flex items-center gap-2 font-normal"><input type="radio" name="has_additional" value="no" onchange="toggleAdditional(this.value)" required /> No — this is my only entity</label>
-              <label class="flex items-center gap-2 font-normal"><input type="radio" name="has_additional" value="yes" onchange="toggleAdditional(this.value)" required /> Yes</label>
-            </div>
-          </div>
-          <div id="additional-detail" style="display:none">
-            <div class="info-box">
-              You will receive a separate onboarding link for each additional entity after we have processed this form. Please list them below so we can prepare the right forms.
-            </div>
-            <div class="form-group mt-3">
-              <label>List your additional entities</label>
-              <textarea name="additional_entities" rows="3" placeholder="e.g. 1. Smith Investments Pty Ltd (company)&#10;2. Smith Family Trust (trust)"></textarea>
-            </div>
-          </div>
-        </div>
+      <div class="g2">
+        <div class="field"><label>Full name <span class="req">*</span></label><input type="text" id="d_name"/><div class="err-msg">Required</div></div>
+        <div class="field"><label>Capacity <span class="req">*</span></label><input type="text" id="d_cap" placeholder="e.g. Individual, Director, Trustee"/><div class="err-msg">Required</div></div>
+      </div>
+      <div class="field">
+        <label>Date <span class="req">*</span></label>
+        <input type="date" id="d_date"/>
       </div>
 
-      <!-- ── STEP: DECLARATION ────────────────────────────────────────────── -->
-      <div class="section-block" id="block-declaration">
-        <div class="section-card fade-in">
-          <div class="section-title"><span class="badge" id="badge-decl">10</span> Declaration</div>
-          <p class="text-sm text-gray-600 mb-4">Please read and confirm the following before submitting.</p>
-          <div class="space-y-3 mb-6">
-            <div class="declaration-check">
-              <input type="checkbox" name="decl_1" id="decl_1" required />
-              <label for="decl_1" class="font-normal cursor-pointer">I confirm that all information provided in this form is true, accurate and complete to the best of my knowledge.</label>
-            </div>
-            <div class="declaration-check">
-              <input type="checkbox" name="decl_2" id="decl_2" required />
-              <label for="decl_2" class="font-normal cursor-pointer">I understand that Skyline Accounting is required by law to collect and verify this information, and that providing false or misleading information may be a criminal offence.</label>
-            </div>
-            <div class="declaration-check">
-              <input type="checkbox" name="decl_3" id="decl_3" required />
-              <label for="decl_3" class="font-normal cursor-pointer">I understand that Skyline Accounting may request additional information or documents at any time, and that services cannot commence until identity verification is complete.</label>
-            </div>
-            <div class="declaration-check">
-              <input type="checkbox" name="decl_4" id="decl_4" required />
-              <label for="decl_4" class="font-normal cursor-pointer">I will notify Skyline Accounting promptly if any of the information provided in this form changes.</label>
-            </div>
-          </div>
-          <div class="grid-2 mb-4">
-            <div class="form-group">
-              <label>Full name of person completing this form <span class="required-star">*</span></label>
-              <input type="text" name="decl_name" required />
-            </div>
-            <div class="form-group">
-              <label>Capacity (e.g. Director, Trustee, Individual) <span class="required-star">*</span></label>
-              <input type="text" name="decl_capacity" placeholder="e.g. Sole Director" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Date <span class="required-star">*</span></label>
-            <input type="date" name="decl_date" id="decl_date" required />
-          </div>
-          <button type="submit" class="submit-btn mt-2">Submit Onboarding Form →</button>
-          <p class="text-xs text-gray-400 text-center mt-3">Your information is encrypted and stored securely. It will only be accessed by authorised Skyline Accounting staff for AML/CTF compliance purposes.</p>
-        </div>
+      <div id="decl_err" class="text-red-500 text-sm mt-2 hidden">Please confirm all declarations and complete all fields.</div>
+
+      <div class="flex justify-between mt-6">
+        <button class="btn-secondary" onclick="goStep(7)">← Back</button>
+        <button class="btn-primary" onclick="submitForm()">Submit onboarding form →</button>
       </div>
+    </div>
+  </div>
 
-    </form>
-
-    <!-- ── SUCCESS SCREEN ─────────────────────────────────────────────────── -->
-    <div class="success-screen section-card" id="successScreen">
+  <!-- ══ STEP 9: SUCCESS ════════════════════════════════════════════════ -->
+  <div class="step-pane" id="step-9">
+    <div class="card p-10 text-center fade-in">
       <div class="text-5xl mb-4">✅</div>
-      <h2 class="text-2xl font-bold text-sky-900 mb-3">Form submitted successfully</h2>
-      <p class="text-gray-600 mb-6 max-w-md mx-auto">Thank you. We have received your AML/CTF onboarding form. A member of the Skyline Accounting team will be in touch shortly to confirm next steps, including your ID verification via Seamlss.</p>
-      <div class="info-box max-w-md mx-auto text-left">
+      <h2 class="text-2xl font-bold text-brand-900 mb-3">Submitted successfully</h2>
+      <p class="text-gray-600 mb-6 max-w-md mx-auto text-sm">Thank you. We have received your onboarding form. A member of the Skyline team will be in touch shortly to confirm next steps.</p>
+      <div class="info-box max-w-md mx-auto text-left text-sm">
         <strong>What happens next:</strong>
         <ol class="list-decimal list-inside mt-2 space-y-1">
           <li>You will receive a Seamlss link to upload your photo ID</li>
-          <li>We will review your information (usually 1–2 business days)</li>
+          <li>We will review your information (1–2 business days)</li>
           <li>We will contact you to confirm your engagement can proceed</li>
         </ol>
       </div>
-      <p class="text-sm text-gray-500 mt-6">Questions? Email <a href="mailto:dhimesh@skylineaccounting.com.au" class="text-sky-700 underline">dhimesh@skylineaccounting.com.au</a></p>
     </div>
+  </div>
 
-  </main>
+</main>
 
-  <footer class="bg-sky-900 text-sky-300 text-center text-xs py-4 mt-12">
-    Skyline Accounting &nbsp;|&nbsp; AML/CTF Client Onboarding Form &nbsp;|&nbsp; This form is for compliance purposes only
-  </footer>
+<!-- ══ ENTITY TYPE SELECTOR MODAL ════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalTypeSelect">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="font-bold text-brand-900">Add an entity — select type</h3>
+      <button class="btn-danger text-lg" onclick="closeModal('modalTypeSelect')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="typeTiles">
+        <div class="type-tile" onclick="openEntityForm('company')"><div class="tile-icon">🏢</div><div class="tile-label">Company</div><div class="tile-sub">Pty Ltd, Ltd etc.</div></div>
+        <div class="type-tile" onclick="openEntityForm('trust')"><div class="tile-icon">🔒</div><div class="tile-label">Trust</div><div class="tile-sub">Family, unit, discretionary</div></div>
+        <div class="type-tile" onclick="openEntityForm('partnership')"><div class="tile-icon">🤝</div><div class="tile-label">Partnership</div><div class="tile-sub">Two or more partners</div></div>
+        <div class="type-tile" onclick="openEntityForm('association')"><div class="tile-icon">🏛️</div><div class="tile-label">Association</div><div class="tile-sub">Club, NFP, incorporated</div></div>
+        <div class="type-tile" onclick="openEntityForm('soletrader')"><div class="tile-icon">🧾</div><div class="tile-label">Sole Trader</div><div class="tile-sub">ABN, trading as yourself</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ENTITY FORM MODAL ══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalEntityForm">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="font-bold text-brand-900" id="entityFormTitle">Add entity</h3>
+      <button class="btn-danger text-lg" onclick="closeModal('modalEntityForm')">✕</button>
+    </div>
+    <div class="modal-body" id="entityFormBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modalEntityForm')">Cancel</button>
+      <button class="btn-primary" onclick="saveEntity()">Save entity</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PERSON MODAL ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalPerson">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="font-bold text-brand-900" id="personModalTitle">Add person</h3>
+      <button class="btn-danger text-lg" onclick="closeModal('modalPerson')">✕</button>
+    </div>
+    <div class="modal-body" id="personModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modalPerson')">Cancel</button>
+      <button class="btn-primary" onclick="savePerson()">Save person</button>
+    </div>
+  </div>
+</div>
+
+<footer class="bg-brand-900 text-blue-300 text-center text-xs py-4 mt-12">
+  Skyline Accounting &nbsp;|&nbsp; AML/CTF Client Onboarding &nbsp;|&nbsp; Confidential — for compliance use only
+</footer>
 
 <script>
-  // ── State ────────────────────────────────────────────────────────────────
-  let selectedEntity = null;
-  const personCounts = {};
+// ═══════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════
+const state = {
+  step: 1,
+  contact: {},
+  people: [],      // [{id, firstName, lastName, dob, address, suburb, state, postcode, country}]
+  entities: [],    // [{id, type, name, status:'complete'|'draft', data:{...}}]
+  services: {},
+  funds: {},
+  pep: {},
+  declaration: {}
+};
 
-  const entitySections = {
-    individual:  ['block-individual'],
-    soletrader:  ['block-soletrader'],
-    company:     ['block-company'],
-    trust:       ['block-trust'],
-    partnership: ['block-partnership'],
-    association: ['block-association'],
+// Current entity being edited
+let editingEntityId = null;
+let editingEntityType = null;
+let personCallback = null; // function to call with person id after person saved
+
+const STEPS = ['','Welcome','About You','Your Entities','Services','Funds & Wealth','PEP Check','Review','Declaration'];
+const TOTAL_STEPS = 8;
+
+// ═══════════════════════════════════════════════════════════════════════
+// WIZARD
+// ═══════════════════════════════════════════════════════════════════════
+function goStep(n) {
+  document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(`step-${n}`).classList.add('active');
+  state.step = n;
+  renderStepIndicator();
+  if (n === 7) renderReview();
+  document.getElementById('d_date').valueAsDate = new Date();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  saveToStorage();
+  updateProgress();
+}
+
+function renderStepIndicator() {
+  const container = document.querySelector('.step-indicator');
+  container.innerHTML = '';
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'si-item flex-col items-center ' + (i <= TOTAL_STEPS ? 'flex' : 'hidden');
+    let cls = i < state.step ? 'done' : i === state.step ? 'active' : 'pending';
+    dot.innerHTML = `<div class="si-dot ${cls}">${i < state.step ? '✓' : i}</div>`;
+    container.appendChild(dot);
+    if (i < TOTAL_STEPS) {
+      const line = document.createElement('div');
+      line.className = 'si-line ' + (i < state.step ? 'done' : '');
+      container.appendChild(line);
+    }
+  }
+  document.getElementById('stepTitle').textContent = `Step ${state.step} of ${TOTAL_STEPS} — ${STEPS[state.step]}`;
+}
+
+function updateProgress() {
+  const pct = Math.round(((state.step - 1) / TOTAL_STEPS) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 2: SAVE CONTACT
+// ═══════════════════════════════════════════════════════════════════════
+function saveContact() {
+  const fields = ['c_first','c_last','c_email','c_phone','c_legal','c_dob','c_cob','c_addr','c_suburb','c_state','c_post','c_occ'];
+  if (!validateFields(fields)) return;
+
+  state.contact = {
+    firstName: val('c_first'), lastName: val('c_last'),
+    email: val('c_email'), phone: val('c_phone'),
+    legalName: val('c_legal'), dob: val('c_dob'),
+    countryBirth: val('c_cob'), address: val('c_addr'),
+    suburb: val('c_suburb'), state: val('c_state'),
+    postcode: val('c_post'), occupation: val('c_occ'),
+    employer: val('c_emp')
   };
 
-  const commonSections = ['block-contact','block-service','block-funds','block-pep','block-additional','block-declaration'];
-  const badgeOffsets = { individual:1, soletrader:2, company:3, trust:3, partnership:2, association:2 };
-
-  // ── Entity selection ─────────────────────────────────────────────────────
-  function selectEntity(type, el) {
-    // Deselect all
-    document.querySelectorAll('.entity-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedEntity = type;
-    document.getElementById('entityError').classList.add('hidden');
-
-    // Hide all entity blocks
-    Object.values(entitySections).flat().forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.classList.remove('active'); }
+  // Add primary contact to people registry if not already there
+  if (!state.people.find(p => p.id === 'primary')) {
+    state.people.push({
+      id: 'primary',
+      firstName: state.contact.firstName,
+      lastName: state.contact.lastName,
+      dob: state.contact.dob,
+      address: state.contact.address,
+      suburb: state.contact.suburb,
+      state: state.contact.state,
+      postcode: state.contact.postcode,
+      country: 'Australia',
+      isPrimary: true
     });
-
-    // Show this entity's blocks
-    (entitySections[type] || []).forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.classList.add('active'); }
-    });
-
-    // Show common sections
-    commonSections.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.classList.add('active'); }
-    });
-
-    // Update badge numbers based on entity offset
-    updateBadges(type);
-    updateProgress();
-    // Scroll to contact section
-    setTimeout(() => document.getElementById('block-contact').scrollIntoView({behavior:'smooth', block:'start'}), 100);
   }
 
-  function updateBadges(type) {
-    const offsets = { individual:1, soletrader:2, company:3, trust:3, partnership:2, association:2 };
-    const o = offsets[type] || 1;
-    document.getElementById('badge-service').textContent = o + 2;
-    document.getElementById('badge-funds').textContent = o + 3;
-    document.getElementById('badge-pep').textContent = o + 4;
-    document.getElementById('badge-add').textContent = o + 5;
-    document.getElementById('badge-decl').textContent = o + 6;
+  goStep(3);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 3: ENTITY HUB
+// ═══════════════════════════════════════════════════════════════════════
+function renderEntityHub() {
+  const list = document.getElementById('entityList');
+  if (state.entities.length === 0) {
+    list.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">No entities added yet. Add a company, trust, partnership or other entity below.</p>';
+    return;
   }
+  list.innerHTML = state.entities.map(e => `
+    <div class="entity-card flex items-start justify-between gap-4">
+      <div class="flex items-start gap-3">
+        <div class="text-2xl mt-0.5">${entityIcon(e.type)}</div>
+        <div>
+          <div class="font-semibold text-sm text-gray-900">${e.name || '(unnamed)'}</div>
+          <div class="flex gap-2 mt-1 flex-wrap">
+            <span class="badge badge-${e.type}">${entityLabel(e.type)}</span>
+            <span class="badge ${e.status === 'complete' ? 'badge-complete' : 'badge-incomplete'}">${e.status === 'complete' ? '✓ Complete' : '⚠ Draft'}</span>
+          </div>
+          ${entitySummaryLine(e)}
+        </div>
+      </div>
+      <div class="flex gap-3 flex-shrink-0">
+        <button class="btn-ghost text-xs" onclick="editEntity('${e.id}')">Edit</button>
+        <button class="btn-danger" onclick="deleteEntity('${e.id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
 
-  // ── Progress tracking ─────────────────────────────────────────────────────
-  function updateProgress() {
-    const sections = document.querySelectorAll('.section-block.active');
-    const filled = Array.from(document.querySelectorAll('.section-block.active input:required, .section-block.active select:required, .section-block.active textarea:required'))
-      .filter(el => el.value && el.value.trim()).length;
-    const total = document.querySelectorAll('.section-block.active input:required, .section-block.active select:required, .section-block.active textarea:required').length;
-    const pct = total > 0 ? Math.min(Math.round((filled / total) * 100), 100) : 0;
-    document.getElementById('progressFill').style.width = pct + '%';
+function entityIcon(type) {
+  return {company:'🏢', trust:'🔒', partnership:'🤝', association:'🏛️', soletrader:'🧾'}[type] || '📋';
+}
+function entityLabel(type) {
+  return {company:'Company', trust:'Trust', partnership:'Partnership', association:'Association', soletrader:'Sole Trader'}[type] || type;
+}
+function entitySummaryLine(e) {
+  if (!e.data) return '';
+  const lines = [];
+  if (e.type === 'company' && e.data.acn) lines.push(`ACN ${e.data.acn}`);
+  if (e.type === 'trust' && e.data.type) lines.push(e.data.type);
+  if (e.type === 'partnership' && e.data.abn) lines.push(`ABN ${e.data.abn}`);
+  if (e.type === 'soletrader' && e.data.abn) lines.push(`ABN ${e.data.abn}`);
+  if (lines.length) return `<div class="text-xs text-gray-400 mt-0.5">${lines.join(' · ')}</div>`;
+  return '';
+}
+
+function openAddEntity() {
+  openModal('modalTypeSelect');
+}
+
+function editEntity(id) {
+  const e = state.entities.find(x => x.id === id);
+  if (!e) return;
+  editingEntityId = id;
+  openEntityForm(e.type, e);
+}
+
+function deleteEntity(id) {
+  if (!confirm('Remove this entity?')) return;
+  state.entities = state.entities.filter(x => x.id !== id);
+  renderEntityHub();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ENTITY FORM MODAL
+// ═══════════════════════════════════════════════════════════════════════
+function openEntityForm(type, existing) {
+  closeModal('modalTypeSelect');
+  editingEntityType = type;
+  if (!existing) {
+    editingEntityId = 'e_' + Date.now();
   }
+  document.getElementById('entityFormTitle').textContent = (existing ? 'Edit' : 'Add') + ' — ' + entityLabel(type);
+  document.getElementById('entityFormBody').innerHTML = buildEntityForm(type, existing ? existing.data : null);
+  openModal('modalEntityForm');
+  // Restore person lists if editing
+  if (existing && existing.data) restorePersonLists(type, existing.data);
+}
 
-  document.getElementById('mainForm').addEventListener('input', updateProgress);
+function buildEntityForm(type, data) {
+  const d = data || {};
+  const v = (k, fallback='') => d[k] !== undefined ? escHtml(d[k]) : fallback;
 
-  // ── Add/remove person blocks ──────────────────────────────────────────────
-  function addPerson(listId, prefix, label) {
-    if (!personCounts[prefix]) personCounts[prefix] = 1;
-    const idx = personCounts[prefix]++;
-    const list = document.getElementById(listId);
-    const template = document.getElementById(`${prefix}-0`);
-    const clone = template.cloneNode(true);
-    clone.id = `${prefix}-${idx}`;
-    clone.querySelectorAll('input, select, textarea').forEach(el => {
-      el.name = el.name.replace(/_0$/, `_${idx}`);
-      el.value = '';
-    });
-    // Update label
-    const heading = clone.querySelector('.font-semibold');
-    if (heading) heading.textContent = `${label} ${idx + 1}`;
-    // Add remove button
-    const removeBtn = document.createElement('span');
-    removeBtn.className = 'remove-btn';
-    removeBtn.textContent = '✕ Remove';
-    removeBtn.onclick = () => clone.remove();
-    clone.appendChild(removeBtn);
-    clone.classList.add('fade-in');
-    list.appendChild(clone);
-  }
+  if (type === 'company') return `
+    <div class="section-heading" style="margin-top:0">Company details</div>
+    <div class="field mb-3"><label>Full company name (ASIC) <span class="req">*</span></label><input type="text" id="ef_name" value="${v('name')}"/></div>
+    <div class="g2">
+      <div class="field"><label>ACN <span class="req">*</span></label><input type="text" id="ef_acn" value="${v('acn')}" placeholder="xxx xxx xxx"/></div>
+      <div class="field"><label>ABN</label><input type="text" id="ef_abn" value="${v('abn')}" placeholder="xx xxx xxx xxx"/></div>
+    </div>
+    <div class="field mb-3"><label>Registered address <span class="req">*</span></label><input type="text" id="ef_regaddr" value="${v('regAddress')}"/></div>
+    <div class="field mb-3"><label>Principal place of business (if different)</label><input type="text" id="ef_bizaddr" value="${v('bizAddress')}"/></div>
+    <div class="field mb-3"><label>Nature of business <span class="req">*</span></label><input type="text" id="ef_nature" value="${v('bizNature')}" placeholder="e.g. Property investment"/></div>
+    <div class="section-heading">Directors</div>
+    <div id="plist_directors"></div>
+    <button class="btn-ghost mt-1" onclick="openPersonPicker('directors', 'Director')">+ Add director</button>
+    <div class="section-heading">Beneficial owners <span class="text-gray-400 font-normal text-xs">(25%+ shareholders or effective control)</span></div>
+    <div id="plist_benefs"></div>
+    <button class="btn-ghost mt-1" onclick="openPersonPicker('benefs', 'Beneficial Owner')">+ Add beneficial owner</button>
+    <div class="info-box mt-3 text-xs">If no individual owns 25%+, list the senior managing official (CEO or equivalent).</div>
+  `;
 
-  // ── Trust trustee toggle ──────────────────────────────────────────────────
-  function toggleTrusteeType(val) {
-    document.getElementById('trustee-individual').style.display = val === 'individual' ? 'block' : 'none';
-    document.getElementById('trustee-corporate').style.display = val === 'corporate' ? 'block' : 'none';
-  }
+  if (type === 'trust') {
+    const companyOptions = state.entities.filter(e => e.type === 'company' && e.id !== editingEntityId)
+      .map(e => `<option value="${e.id}" ${d.corpTrusteeEntityId === e.id ? 'selected' : ''}>${escHtml(e.name)}</option>`).join('');
+    return `
+    <div class="section-heading" style="margin-top:0">Trust details</div>
+    <div class="field mb-3"><label>Full name of the trust <span class="req">*</span></label><input type="text" id="ef_name" value="${v('name')}"/></div>
+    <div class="g2">
+      <div class="field"><label>Type of trust <span class="req">*</span></label>
+        <select id="ef_trusttype">
+          <option value="">Select</option>
+          ${['Discretionary (Family) Trust','Unit Trust','Bare Trust','Testamentary Trust','Hybrid Trust','Other'].map(t=>`<option value="${t}" ${d.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>Date established <span class="req">*</span></label><input type="date" id="ef_trustdate" value="${v('date')}"/></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>ABN (if any)</label><input type="text" id="ef_abn" value="${v('abn')}"/></div>
+      <div class="field"><label>Country established</label><input type="text" id="ef_country" value="${v('country','Australia')}"/></div>
+    </div>
+    <div class="field mb-3"><label>Purpose of the trust <span class="req">*</span></label><input type="text" id="ef_nature" value="${v('purpose')}" placeholder="e.g. Family asset management and investment"/></div>
+    <div class="section-heading">Trustee type</div>
+    <div class="field mb-3">
+      <select id="ef_trusteetype" onchange="onTrusteeTypeChange(this.value)">
+        <option value="">Select trustee type</option>
+        <option value="individual" ${d.trusteeType==='individual'?'selected':''}>Individual trustee(s)</option>
+        <option value="corporate_existing" ${d.trusteeType==='corporate_existing'?'selected':''}>Corporate trustee — already added above</option>
+        <option value="corporate_new" ${d.trusteeType==='corporate_new'?'selected':''}>Corporate trustee — enter details now</option>
+      </select>
+    </div>
+    <div id="trustee_individual_section" style="display:none">
+      <div id="plist_trustees"></div>
+      <button class="btn-ghost mt-1" onclick="openPersonPicker('trustees', 'Trustee')">+ Add individual trustee</button>
+    </div>
+    <div id="trustee_corp_existing_section" style="display:none">
+      <div class="field">
+        <label>Select corporate trustee from entities already added</label>
+        <select id="ef_corptrusteeid">
+          <option value="">Select company</option>${companyOptions}
+        </select>
+      </div>
+      ${companyOptions ? '' : '<div class="info-box text-xs mt-2">No companies added yet. Go back and add the trustee company first, or select "Enter details now".</div>'}
+    </div>
+    <div id="trustee_corp_new_section" style="display:none">
+      <div class="g2">
+        <div class="field"><label>Corporate trustee name</label><input type="text" id="ef_corpname" value="${v('corpTrusteeName')}"/></div>
+        <div class="field"><label>ACN</label><input type="text" id="ef_corpacn" value="${v('corpTrusteeACN')}"/></div>
+      </div>
+      <div class="section-heading" style="font-size:0.8rem">Directors of corporate trustee</div>
+      <div id="plist_corpdirs"></div>
+      <button class="btn-ghost mt-1" onclick="openPersonPicker('corpdirs', 'Corporate Trustee Director')">+ Add director</button>
+    </div>
+    <div class="section-heading">Beneficiaries</div>
+    <div class="field mb-3">
+      <label>How are beneficiaries determined? <span class="req">*</span></label>
+      <select id="ef_benefclass">
+        <option value="">Select</option>
+        ${['Named individuals in the deed','Class of beneficiaries (e.g. family members)','Both named individuals and a class'].map(o=>`<option value="${o}" ${d.benefClass===o?'selected':''}>${o}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field mb-3"><label>List named beneficiaries or describe the class <span class="req">*</span></label>
+      <textarea id="ef_beneflist" rows="2" placeholder="e.g. John Smith, Jane Smith and their children as defined in the trust deed">${v('benefList')}</textarea>
+    </div>
+    <div class="field"><label>Settlor full name</label><input type="text" id="ef_settlor" value="${v('settlor')}" placeholder="Person who established the trust"/></div>
+  `;}
 
-  // ── PEP detail toggle ─────────────────────────────────────────────────────
-  function togglePepDetail(val) {
-    document.getElementById('pep-detail').style.display = val === 'yes' ? 'block' : 'none';
-    document.getElementById('pep-unsure').style.display = val === 'unsure' ? 'block' : 'none';
-  }
+  if (type === 'partnership') return `
+    <div class="section-heading" style="margin-top:0">Partnership details</div>
+    <div class="g2">
+      <div class="field"><label>Partnership name <span class="req">*</span></label><input type="text" id="ef_name" value="${v('name')}"/></div>
+      <div class="field"><label>ABN <span class="req">*</span></label><input type="text" id="ef_abn" value="${v('abn')}"/></div>
+    </div>
+    <div class="field mb-3"><label>Nature of business <span class="req">*</span></label><input type="text" id="ef_nature" value="${v('nature')}" placeholder="e.g. Building and construction"/></div>
+    <div class="field mb-3"><label>Principal place of business <span class="req">*</span></label><input type="text" id="ef_bizaddr" value="${v('address')}"/></div>
+    <div class="section-heading">Partners</div>
+    <div id="plist_partners"></div>
+    <button class="btn-ghost mt-1" onclick="openPersonPicker('partners', 'Partner')">+ Add partner</button>
+  `;
 
-  // ── Additional entities toggle ────────────────────────────────────────────
-  function toggleAdditional(val) {
-    document.getElementById('additional-detail').style.display = val === 'yes' ? 'block' : 'none';
-  }
+  if (type === 'association') return `
+    <div class="section-heading" style="margin-top:0">Association details</div>
+    <div class="field mb-3"><label>Full name <span class="req">*</span></label><input type="text" id="ef_name" value="${v('name')}"/></div>
+    <div class="g2">
+      <div class="field"><label>ABN (if any)</label><input type="text" id="ef_abn" value="${v('abn')}"/></div>
+      <div class="field"><label>Incorporation number (if incorporated)</label><input type="text" id="ef_incnum" value="${v('incNum')}"/></div>
+    </div>
+    <div class="field mb-3"><label>Purpose / objects <span class="req">*</span></label>
+      <textarea id="ef_nature" rows="2" placeholder="e.g. Promotion of amateur cycling in Queensland">${v('purpose')}</textarea>
+    </div>
+    <div class="field mb-3"><label>Principal address <span class="req">*</span></label><input type="text" id="ef_bizaddr" value="${v('address')}"/></div>
+    <div class="section-heading">Governing committee</div>
+    <div id="plist_committee"></div>
+    <button class="btn-ghost mt-1" onclick="openPersonPicker('committee', 'Committee Member')">+ Add committee member</button>
+  `;
 
-  // ── Set today's date ──────────────────────────────────────────────────────
-  document.getElementById('decl_date').valueAsDate = new Date();
+  if (type === 'soletrader') return `
+    <div class="section-heading" style="margin-top:0">Business details</div>
+    <div class="g2">
+      <div class="field"><label>Business / Trading name <span class="req">*</span></label><input type="text" id="ef_name" value="${v('name')}"/></div>
+      <div class="field"><label>ABN <span class="req">*</span></label><input type="text" id="ef_abn" value="${v('abn')}"/></div>
+    </div>
+    <div class="field mb-3"><label>Business address (if different from residential)</label><input type="text" id="ef_bizaddr" value="${v('address')}"/></div>
+    <div class="field mb-3"><label>Nature of business <span class="req">*</span></label><input type="text" id="ef_nature" value="${v('nature')}" placeholder="e.g. Plumbing and gas fitting"/></div>
+    <div class="info-box text-xs mt-2">Your personal details were captured in Step 2 and will be used for this sole trader entity.</div>
+  `;
 
-  // ── Form submit ───────────────────────────────────────────────────────────
-  document.getElementById('mainForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    if (!selectedEntity) {
-      document.getElementById('entityError').classList.remove('hidden');
-      document.getElementById('entityGrid').scrollIntoView({behavior:'smooth'});
-      return;
-    }
-    // Check declarations
-    const decls = ['decl_1','decl_2','decl_3','decl_4'];
-    const allChecked = decls.every(id => document.getElementById(id).checked);
-    if (!allChecked) {
-      alert('Please confirm all declarations before submitting.');
-      return;
-    }
-    // Simulate submission
-    document.getElementById('mainForm').style.display = 'none';
-    const success = document.getElementById('successScreen');
-    success.style.display = 'block';
-    success.classList.add('fade-in');
-    document.getElementById('progressFill').style.width = '100%';
-    window.scrollTo({top: 0, behavior: 'smooth'});
+  return '<p>Unknown entity type.</p>';
+}
+
+// Restore person lists when editing an entity
+const personLists = {}; // listId -> [{personId, extra}]
+
+function restorePersonLists(type, data) {
+  if (!data) return;
+  const map = {
+    company: [['directors', data.directors||[]], ['benefs', data.benefs||[]]],
+    trust: [['trustees', data.trustees||[]], ['corpdirs', data.corpdirs||[]]],
+    partnership: [['partners', data.partners||[]]],
+    association: [['committee', data.committee||[]]],
+  };
+  (map[type]||[]).forEach(([listId, items]) => {
+    personLists[listId] = [...items];
+    renderPersonList(listId);
   });
+  if (type === 'trust' && data.trusteeType) {
+    onTrusteeTypeChange(data.trusteeType);
+  }
+}
+
+function onTrusteeTypeChange(val) {
+  document.getElementById('trustee_individual_section').style.display = val === 'individual' ? 'block' : 'none';
+  document.getElementById('trustee_corp_existing_section').style.display = val === 'corporate_existing' ? 'block' : 'none';
+  document.getElementById('trustee_corp_new_section').style.display = val === 'corporate_new' ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// SAVE ENTITY
+// ═══════════════════════════════════════════════════════════════════════
+function saveEntity() {
+  const type = editingEntityType;
+  const nameEl = document.getElementById('ef_name');
+  if (nameEl && !nameEl.value.trim()) { nameEl.classList.add('error'); nameEl.focus(); return; }
+
+  const data = collectEntityData(type);
+  const name = nameEl ? nameEl.value.trim() : (state.contact.firstName + ' ' + state.contact.lastName);
+
+  const existing = state.entities.find(e => e.id === editingEntityId);
+  if (existing) {
+    existing.name = name;
+    existing.data = data;
+    existing.status = 'complete';
+  } else {
+    state.entities.push({ id: editingEntityId, type, name, status: 'complete', data });
+  }
+
+  // Clear person lists
+  Object.keys(personLists).forEach(k => delete personLists[k]);
+  closeModal('modalEntityForm');
+  renderEntityHub();
+  saveToStorage();
+}
+
+function collectEntityData(type) {
+  const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  if (type === 'company') return {
+    name: gv('ef_name'), acn: gv('ef_acn'), abn: gv('ef_abn'),
+    regAddress: gv('ef_regaddr'), bizAddress: gv('ef_bizaddr'), bizNature: gv('ef_nature'),
+    directors: [...(personLists['directors']||[])],
+    benefs: [...(personLists['benefs']||[])]
+  };
+  if (type === 'trust') {
+    const tt = gv('ef_trusteetype');
+    return {
+      name: gv('ef_name'), type: gv('ef_trusttype'), date: gv('ef_trustdate'),
+      abn: gv('ef_abn'), country: gv('ef_country'), purpose: gv('ef_nature'),
+      trusteeType: tt,
+      trustees: [...(personLists['trustees']||[])],
+      corpTrusteeEntityId: gv('ef_corptrusteeid'),
+      corpTrusteeName: gv('ef_corpname'), corpTrusteeACN: gv('ef_corpacn'),
+      corpdirs: [...(personLists['corpdirs']||[])],
+      benefClass: gv('ef_benefclass'), benefList: gv('ef_beneflist'),
+      settlor: gv('ef_settlor')
+    };
+  }
+  if (type === 'partnership') return {
+    name: gv('ef_name'), abn: gv('ef_abn'), nature: gv('ef_nature'),
+    address: gv('ef_bizaddr'), partners: [...(personLists['partners']||[])]
+  };
+  if (type === 'association') return {
+    name: gv('ef_name'), abn: gv('ef_abn'), incNum: gv('ef_incnum'),
+    purpose: gv('ef_nature'), address: gv('ef_bizaddr'),
+    committee: [...(personLists['committee']||[])]
+  };
+  if (type === 'soletrader') return {
+    name: gv('ef_name'), abn: gv('ef_abn'),
+    address: gv('ef_bizaddr'), nature: gv('ef_nature')
+  };
+  return {};
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PERSON REGISTRY & PICKER
+// ═══════════════════════════════════════════════════════════════════════
+function openPersonPicker(listId, role) {
+  if (!personLists[listId]) personLists[listId] = [];
+
+  const allPeople = state.people;
+  const alreadyAdded = personLists[listId].map(p => p.personId);
+
+  document.getElementById('personModalTitle').textContent = `Add ${role}`;
+
+  let html = '';
+  const available = allPeople.filter(p => !alreadyAdded.includes(p.id));
+  if (available.length > 0) {
+    html += `<p class="text-sm text-gray-500 mb-3">Select an existing person or add someone new.</p>
+    <div class="person-picker mb-4">
+      ${available.map(p => `
+        <label class="pp-existing">
+          <input type="radio" name="pp_pick" value="${p.id}"/>
+          <span>
+            <span class="font-medium text-sm">${escHtml(p.firstName)} ${escHtml(p.lastName)}</span>
+            ${p.isPrimary ? '<span class="badge badge-individual ml-2 text-xs">Primary contact</span>' : ''}
+            <span class="block text-xs text-gray-400">${escHtml(p.dob||'')} · ${escHtml(p.address||'')}</span>
+          </span>
+        </label>
+      `).join('')}
+      <div class="pp-new-toggle" onclick="toggleNewPersonForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add a new person
+      </div>
+      <div class="pp-new-form" id="ppNewForm">${newPersonFields()}</div>
+    </div>`;
+  } else {
+    html += `<p class="text-sm text-gray-500 mb-3">No existing people to select. Enter details below.</p>
+    <div>${newPersonFields()}</div>`;
+  }
+
+  // Extra field for role/ownership %
+  if (['partners','benefs','committee'].includes(listId)) {
+    const extraLabel = listId === 'partners' ? 'Partnership interest (%)' : listId === 'benefs' ? 'Ownership / nature of control' : 'Role (e.g. President)';
+    html += `<div class="field mt-3"><label>${extraLabel}</label><input type="text" id="pp_extra" placeholder="e.g. 50%"/></div>`;
+  }
+
+  document.getElementById('personModalBody').innerHTML = html;
+  personCallback = (personId) => {
+    const extra = document.getElementById('pp_extra') ? document.getElementById('pp_extra').value.trim() : '';
+    personLists[listId].push({ personId, extra });
+    renderPersonList(listId);
+  };
+
+  openModal('modalPerson');
+}
+
+function newPersonFields() {
+  return `
+    <div class="g2 mb-2">
+      <div class="field"><label>First name <span class="req">*</span></label><input type="text" id="pp_first" placeholder="Given name"/></div>
+      <div class="field"><label>Last name <span class="req">*</span></label><input type="text" id="pp_last" placeholder="Family name"/></div>
+    </div>
+    <div class="g2 mb-2">
+      <div class="field"><label>Date of birth <span class="req">*</span></label><input type="date" id="pp_dob"/></div>
+      <div class="field"><label>Country of residence</label><input type="text" id="pp_country" value="Australia"/></div>
+    </div>
+    <div class="field mb-2"><label>Residential address <span class="req">*</span></label><input type="text" id="pp_addr" placeholder="Street address"/></div>
+    <div class="g3">
+      <div class="field"><label>Suburb</label><input type="text" id="pp_suburb"/></div>
+      <div class="field"><label>State</label>
+        <select id="pp_state"><option value="">Select</option><option>ACT</option><option>NSW</option><option>NT</option><option>QLD</option><option>SA</option><option>TAS</option><option>VIC</option><option>WA</option></select>
+      </div>
+      <div class="field"><label>Postcode</label><input type="text" id="pp_post" maxlength="4"/></div>
+    </div>
+  `;
+}
+
+function toggleNewPersonForm() {
+  const f = document.getElementById('ppNewForm');
+  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function savePerson() {
+  // Check if existing person selected
+  const picked = document.querySelector('input[name="pp_pick"]:checked');
+  if (picked) {
+    if (personCallback) personCallback(picked.value);
+    closeModal('modalPerson');
+    return;
+  }
+  // Otherwise save new person
+  const first = document.getElementById('pp_first');
+  const last = document.getElementById('pp_last');
+  const dob = document.getElementById('pp_dob');
+  const addr = document.getElementById('pp_addr');
+  if (!first || !first.value.trim() || !last || !last.value.trim()) {
+    if (first) first.classList.add('error');
+    if (last) last.classList.add('error');
+    return;
+  }
+  const newPerson = {
+    id: 'p_' + Date.now(),
+    firstName: first.value.trim(),
+    lastName: last.value.trim(),
+    dob: dob ? dob.value : '',
+    address: addr ? addr.value.trim() : '',
+    suburb: val_id('pp_suburb'),
+    state: val_id('pp_state'),
+    postcode: val_id('pp_post'),
+    country: val_id('pp_country') || 'Australia'
+  };
+  state.people.push(newPerson);
+  if (personCallback) personCallback(newPerson.id);
+  closeModal('modalPerson');
+}
+
+function renderPersonList(listId) {
+  const el = document.getElementById(`plist_${listId}`);
+  if (!el) return;
+  const items = personLists[listId] || [];
+  el.innerHTML = items.map((item, idx) => {
+    const p = state.people.find(x => x.id === item.personId);
+    if (!p) return '';
+    return `<div class="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg mb-1">
+      <div>
+        <span class="text-sm font-medium">${escHtml(p.firstName)} ${escHtml(p.lastName)}</span>
+        ${item.extra ? `<span class="text-xs text-gray-400 ml-2">${escHtml(item.extra)}</span>` : ''}
+        <div class="text-xs text-gray-400">${escHtml(p.dob||'')} · ${escHtml(p.address||'')}</div>
+      </div>
+      <button class="btn-danger" onclick="removeFromList('${listId}', ${idx})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removeFromList(listId, idx) {
+  personLists[listId].splice(idx, 1);
+  renderPersonList(listId);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 4: SERVICES
+// ═══════════════════════════════════════════════════════════════════════
+function saveServices() {
+  const checked = Array.from(document.querySelectorAll('input[name="svc"]:checked')).map(c => c.value);
+  if (!checked.length) { document.getElementById('svc_err').classList.remove('hidden'); return; }
+  document.getElementById('svc_err').classList.add('hidden');
+  const reason = document.getElementById('svc_reason');
+  if (!reason.value.trim()) { reason.classList.add('error'); return; }
+  reason.classList.remove('error');
+  state.services = { types: checked, reason: reason.value.trim(), frequency: val('svc_freq') };
+  goStep(5);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 5: FUNDS
+// ═══════════════════════════════════════════════════════════════════════
+function saveFunds() {
+  const checked = Array.from(document.querySelectorAll('input[name="fnd"]:checked')).map(c => c.value);
+  if (!checked.length) { document.getElementById('fnd_err').classList.remove('hidden'); return; }
+  document.getElementById('fnd_err').classList.add('hidden');
+  const wealth = document.getElementById('fnd_wealth');
+  if (!wealth.value.trim()) { wealth.classList.add('error'); return; }
+  wealth.classList.remove('error');
+  state.funds = { sources: checked, detail: val('fnd_detail'), wealthDetail: wealth.value.trim() };
+  goStep(6);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 6: PEP
+// ═══════════════════════════════════════════════════════════════════════
+function togglePep(v) {
+  document.getElementById('pep_yes').style.display = v === 'yes' ? 'block' : 'none';
+  document.getElementById('pep_unsure').style.display = v === 'unsure' ? 'block' : 'none';
+}
+
+function savePep() {
+  const picked = document.querySelector('input[name="pep"]:checked');
+  if (!picked) { document.getElementById('pep_err').classList.remove('hidden'); return; }
+  document.getElementById('pep_err').classList.add('hidden');
+  state.pep = { status: picked.value, detail: val('pep_detail') };
+  goStep(7);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 7: REVIEW
+// ═══════════════════════════════════════════════════════════════════════
+function renderReview() {
+  const c = state.contact;
+  const personName = id => { const p = state.people.find(x=>x.id===id); return p ? `${p.firstName} ${p.lastName}` : id; };
+
+  let html = `
+    <div class="review-section">
+      <div class="flex items-center justify-between mb-2">
+        <h4>Primary contact</h4>
+        <button class="btn-ghost text-xs" onclick="goStep(2)">Edit</button>
+      </div>
+      <div class="review-row"><span class="rl">Name</span><span class="rv">${escHtml(c.firstName||'')} ${escHtml(c.lastName||'')}</span></div>
+      <div class="review-row"><span class="rl">Legal name</span><span class="rv">${escHtml(c.legalName||'')}</span></div>
+      <div class="review-row"><span class="rl">Date of birth</span><span class="rv">${escHtml(c.dob||'')}</span></div>
+      <div class="review-row"><span class="rl">Address</span><span class="rv">${escHtml(c.address||'')} ${escHtml(c.suburb||'')} ${escHtml(c.state||'')} ${escHtml(c.postcode||'')}</span></div>
+      <div class="review-row"><span class="rl">Email</span><span class="rv">${escHtml(c.email||'')}</span></div>
+      <div class="review-row"><span class="rl">Phone</span><span class="rv">${escHtml(c.phone||'')}</span></div>
+      <div class="review-row"><span class="rl">Occupation</span><span class="rv">${escHtml(c.occupation||'')}${c.employer ? ' at ' + escHtml(c.employer) : ''}</span></div>
+    </div>
+  `;
+
+  if (state.entities.length > 0) {
+    html += `<div class="review-section"><div class="flex items-center justify-between mb-2"><h4>Entities (${state.entities.length})</h4><button class="btn-ghost text-xs" onclick="goStep(3)">Edit</button></div>`;
+    state.entities.forEach(e => {
+      html += `<div class="entity-card mb-2 p-3">
+        <div class="flex items-center gap-2 mb-1">
+          <span>${entityIcon(e.type)}</span>
+          <span class="font-semibold text-sm">${escHtml(e.name)}</span>
+          <span class="badge badge-${e.type}">${entityLabel(e.type)}</span>
+        </div>`;
+      if (e.data) {
+        if (e.data.acn) html += `<div class="review-row"><span class="rl">ACN</span><span class="rv">${escHtml(e.data.acn)}</span></div>`;
+        if (e.data.abn) html += `<div class="review-row"><span class="rl">ABN</span><span class="rv">${escHtml(e.data.abn)}</span></div>`;
+        if (e.data.bizNature||e.data.nature||e.data.purpose) html += `<div class="review-row"><span class="rl">Nature/purpose</span><span class="rv">${escHtml(e.data.bizNature||e.data.nature||e.data.purpose||'')}</span></div>`;
+        if (e.data.directors && e.data.directors.length) html += `<div class="review-row"><span class="rl">Directors</span><span class="rv">${e.data.directors.map(d=>escHtml(personName(d.personId))).join(', ')}</span></div>`;
+        if (e.data.partners && e.data.partners.length) html += `<div class="review-row"><span class="rl">Partners</span><span class="rv">${e.data.partners.map(d=>escHtml(personName(d.personId))).join(', ')}</span></div>`;
+        if (e.data.trustees && e.data.trustees.length) html += `<div class="review-row"><span class="rl">Trustees</span><span class="rv">${e.data.trustees.map(d=>escHtml(personName(d.personId))).join(', ')}</span></div>`;
+        if (e.data.corpTrusteeName) html += `<div class="review-row"><span class="rl">Corporate trustee</span><span class="rv">${escHtml(e.data.corpTrusteeName)}</span></div>`;
+        if (e.data.corpTrusteeEntityId) {
+          const corpE = state.entities.find(x=>x.id===e.data.corpTrusteeEntityId);
+          if (corpE) html += `<div class="review-row"><span class="rl">Corporate trustee</span><span class="rv">${escHtml(corpE.name)}</span></div>`;
+        }
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (state.services.types) {
+    html += `<div class="review-section"><div class="flex items-center justify-between mb-2"><h4>Services</h4><button class="btn-ghost text-xs" onclick="goStep(4)">Edit</button></div>
+      <div class="review-row"><span class="rl">Services requested</span><span class="rv">${(state.services.types||[]).join(', ')}</span></div>
+      <div class="review-row"><span class="rl">Reason</span><span class="rv">${escHtml(state.services.reason||'')}</span></div>
+    </div>`;
+  }
+
+  if (state.funds.sources) {
+    html += `<div class="review-section"><div class="flex items-center justify-between mb-2"><h4>Source of funds & wealth</h4><button class="btn-ghost text-xs" onclick="goStep(5)">Edit</button></div>
+      <div class="review-row"><span class="rl">Source of funds</span><span class="rv">${(state.funds.sources||[]).join(', ')}</span></div>
+      <div class="review-row"><span class="rl">Source of wealth</span><span class="rv">${escHtml(state.funds.wealthDetail||'')}</span></div>
+    </div>`;
+  }
+
+  if (state.pep.status) {
+    html += `<div class="review-section"><div class="flex items-center justify-between mb-2"><h4>PEP declaration</h4><button class="btn-ghost text-xs" onclick="goStep(6)">Edit</button></div>
+      <div class="review-row"><span class="rl">PEP status</span><span class="rv ${state.pep.status === 'yes' ? 'text-red-600 font-bold' : ''}">${escHtml(state.pep.status||'')}</span></div>
+      ${state.pep.detail ? `<div class="review-row"><span class="rl">Details</span><span class="rv">${escHtml(state.pep.detail)}</span></div>` : ''}
+    </div>`;
+  }
+
+  document.getElementById('reviewContent').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STEP 8: SUBMIT
+// ═══════════════════════════════════════════════════════════════════════
+function submitForm() {
+  const checks = ['d1','d2','d3','d4'].every(id => document.getElementById(id).checked);
+  const name = document.getElementById('d_name').value.trim();
+  const cap = document.getElementById('d_cap').value.trim();
+  const date = document.getElementById('d_date').value;
+  if (!checks || !name || !cap || !date) {
+    document.getElementById('decl_err').classList.remove('hidden');
+    return;
+  }
+  state.declaration = { name, capacity: cap, date };
+  // In production: POST state to backend here
+  localStorage.removeItem('skyline_aml_state');
+  goStep(9);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════════
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function val_id(id) { return val(id); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function validateFields(ids) {
+  let ok = true;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const parent = el.closest('.field');
+    if (!el.value.trim()) {
+      el.classList.add('error');
+      if (parent) parent.classList.add('has-error');
+      ok = false;
+    } else {
+      el.classList.remove('error');
+      if (parent) parent.classList.remove('has-error');
+    }
+  });
+  if (!ok) document.querySelector('.error')?.scrollIntoView({behavior:'smooth', block:'center'});
+  return ok;
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════════════════════════════════════════════════
+function saveToStorage() {
+  try { localStorage.setItem('skyline_aml_state', JSON.stringify(state)); } catch(e){}
+}
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem('skyline_aml_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(state, parsed);
+    }
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+loadFromStorage();
+renderStepIndicator();
+updateProgress();
+renderEntityHub();
+
+// Restore step if returning
+if (state.step > 1 && state.step < 9) {
+  const banner = document.createElement('div');
+  banner.className = 'card p-4 mb-4 flex items-center justify-between gap-4 text-sm';
+  banner.innerHTML = `<span>You have a form in progress. <strong>Continue where you left off?</strong></span>
+    <div class="flex gap-2">
+      <button class="btn-primary text-xs py-2 px-4" onclick="continueForm(this.closest('.card'))">Continue</button>
+      <button class="btn-secondary text-xs py-2 px-4" onclick="startFresh(this.closest('.card'))">Start over</button>
+    </div>`;
+  document.querySelector('main').insertBefore(banner, document.querySelector('main').firstChild);
+}
+
+function continueForm(banner) {
+  banner.remove();
+  const s = state.step;
+  state.step = 1;
+  goStep(s);
+  // Restore contact fields
+  if (state.contact.firstName) {
+    const map = {c_first:'firstName',c_last:'lastName',c_email:'email',c_phone:'phone',c_legal:'legalName',c_dob:'dob',c_cob:'countryBirth',c_addr:'address',c_suburb:'suburb',c_state:'state',c_post:'postcode',c_occ:'occupation',c_emp:'employer'};
+    Object.entries(map).forEach(([id,k]) => { const el=document.getElementById(id); if(el) el.value=state.contact[k]||''; });
+  }
+}
+
+function startFresh(banner) {
+  banner.remove();
+  Object.keys(state).forEach(k => {
+    if (k==='step') state.step=1;
+    else if (Array.isArray(state[k])) state[k]=[];
+    else state[k]={};
+  });
+  localStorage.removeItem('skyline_aml_state');
+}
 </script>
 </body>
 </html>
