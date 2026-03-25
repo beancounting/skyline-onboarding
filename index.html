@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Skyline Accounting — AML/CTF Client Onboarding</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script>
 tailwind.config = {
@@ -539,9 +539,15 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
 // ═══════════════════════════════════════════════════════════════════════
 // SUPABASE
 // ═══════════════════════════════════════════════════════════════════════
-const SUPABASE_URL = 'https://qmisahcybfxsnnmpwauv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtaXNhaGN5YmZ4c25ubXB3YXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzOTgyNTEsImV4cCI6MjA4OTk3NDI1MX0.qZQhCmmQOcR_xVwlN1ysVmvprW3gxmFkwFgEPnq4NxY';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var SUPABASE_URL = 'https://qmisahcybfxsnnmpwauv.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtaXNhaGN5YmZ4c25ubXB3YXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzOTgyNTEsImV4cCI6MjA4OTk3NDI1MX0.qZQhCmmQOcR_xVwlN1ysVmvprW3gxmFkwFgEPnq4NxY';
+var sb = null;
+if (window.supabase) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log('Supabase client ready');
+} else {
+  console.error('Supabase SDK failed to load — submissions will not be saved');
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // STATE
@@ -1253,8 +1259,11 @@ async function submitForm() {
   errEl.classList.add('hidden');
 
   try {
+    if (!sb) throw new Error('Supabase not connected — please refresh the page and try again');
+
     // 1. Insert submission (client-generated UUID — no SELECT policy needed)
     const submissionId = crypto.randomUUID();
+    console.log('Submitting to Supabase...', submissionId);
     const { error: subErr } = await sb
       .from('submissions')
       .insert({
@@ -1281,6 +1290,7 @@ async function submitForm() {
         raw_state: JSON.parse(JSON.stringify(state, (k, v) => k === 'idDocFile' ? undefined : v))
       });
 
+    console.log('Submission insert result:', subErr ? 'ERROR: ' + subErr.message : 'OK');
     if (subErr) throw subErr;
 
     // 2. Insert persons + upload ID docs
@@ -1342,6 +1352,7 @@ async function submitForm() {
     // Uncomment when on-submission function is deployed:
     // await sb.functions.invoke('on-submission', { body: { submissionId } });
 
+    console.log('All inserts complete — submission', submissionId);
     localStorage.removeItem('skyline_aml_state');
     goStep(9);
 
