@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Skyline Accounting — AML/CTF Client Onboarding</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script>
 tailwind.config = {
@@ -535,6 +536,13 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
 </footer>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://qmisahcybfxsnnmpwauv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtaXNhaGN5YmZ4c25ubXB3YXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzOTgyNTEsImV4cCI6MjA4OTk3NDI1MX0.qZQhCmmQOcR_xVwlN1ysVmvprW3gxmFkwFgEPnq4NxY';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // ═══════════════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════════════
@@ -1226,7 +1234,7 @@ function renderReview() {
 // ═══════════════════════════════════════════════════════════════════════
 // STEP 8: SUBMIT
 // ═══════════════════════════════════════════════════════════════════════
-function submitForm() {
+async function submitForm() {
   const checks = ['d1','d2','d3','d4','d5'].every(id => document.getElementById(id).checked);
   const name = document.getElementById('d_name').value.trim();
   const cap = document.getElementById('d_cap').value.trim();
@@ -1236,9 +1244,114 @@ function submitForm() {
     return;
   }
   state.declaration = { name, capacity: cap, date };
-  // In production: POST state to backend here
-  localStorage.removeItem('skyline_aml_state');
-  goStep(9);
+
+  // Show loading state
+  const submitBtn = document.querySelector('#step-8 .btn-primary');
+  const errEl = document.getElementById('decl_err');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting…';
+  errEl.classList.add('hidden');
+
+  try {
+    // 1. Insert submission (client-generated UUID — no SELECT policy needed)
+    const submissionId = crypto.randomUUID();
+    const { error: subErr } = await sb
+      .from('submissions')
+      .insert({
+        id: submissionId,
+        contact_first: state.contact.firstName,
+        contact_last: state.contact.lastName,
+        contact_email: state.contact.email,
+        contact_phone: state.contact.phone,
+        contact_dob: state.contact.dob || null,
+        contact_legal_name: state.contact.legalName,
+        contact_address: state.contact.address,
+        contact_suburb: state.contact.suburb,
+        contact_state: state.contact.state,
+        contact_postcode: state.contact.postcode,
+        contact_occupation: state.contact.occupation,
+        contact_employer: state.contact.employer,
+        contact_country_birth: state.contact.countryBirth,
+        services: state.services,
+        funds: state.funds,
+        pep: state.pep,
+        declaration_name: state.declaration.name,
+        declaration_capacity: state.declaration.capacity,
+        declaration_date: state.declaration.date,
+        raw_state: JSON.parse(JSON.stringify(state, (k, v) => k === 'idDocFile' ? undefined : v))
+      });
+
+    if (subErr) throw subErr;
+
+    // 2. Insert persons + upload ID docs
+    for (const person of state.people) {
+      // Build storage path before insert so we can set it in one go
+      let storagePath = null;
+      if (person.idDocFile) {
+        const ext = person.idDocFile.name.split('.').pop().toLowerCase();
+        storagePath = `${submissionId}/${person.id}/${person.idDocType || 'id'}.${ext}`;
+      }
+
+      const { error: pErr } = await sb
+        .from('persons')
+        .insert({
+          submission_id: submissionId,
+          frontend_id: person.id,
+          first_name: person.firstName,
+          last_name: person.lastName,
+          dob: person.dob || null,
+          address: person.address,
+          suburb: person.suburb,
+          state_abbr: person.state,
+          postcode: person.postcode,
+          country: person.country || 'Australia',
+          is_primary: !!person.isPrimary,
+          id_doc_type: person.idDocType || null,
+          id_doc_path: storagePath
+        });
+      if (pErr) console.error('Person insert error:', pErr);
+
+      // Upload ID document to Supabase Storage
+      if (person.idDocFile && storagePath) {
+        const { error: storErr } = await sb.storage
+          .from('id-documents')
+          .upload(storagePath, person.idDocFile, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: person.idDocFile.type
+          });
+        if (storErr) console.error('Storage upload error:', storErr);
+      }
+    }
+
+    // 3. Insert entities
+    for (const entity of state.entities) {
+      const { error: eErr } = await sb
+        .from('entities')
+        .insert({
+          submission_id: submissionId,
+          frontend_id: entity.id,
+          type: entity.type,
+          name: entity.name,
+          data: entity.data
+        });
+      if (eErr) console.error('Entity insert error:', eErr);
+    }
+
+    // 4. Trigger Edge Function (Phase 3 — PDF + email + Dropbox)
+    // Uncomment when on-submission function is deployed:
+    // await sb.functions.invoke('on-submission', { body: { submissionId } });
+
+    localStorage.removeItem('skyline_aml_state');
+    goStep(9);
+
+  } catch (err) {
+    console.error('Submission failed:', err);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit onboarding form →';
+    errEl.textContent = 'Submission failed — ' + (err.message || 'please try again or contact Skyline.');
+    errEl.classList.remove('hidden');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
