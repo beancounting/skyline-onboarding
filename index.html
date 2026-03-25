@@ -131,6 +131,32 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
 .check-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
 .check-row input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: #1a3d6b; }
 .check-row label { font-size: 0.85rem; color: #374151; cursor: pointer; font-weight: 400; }
+
+/* ID doc file input */
+.id-preview { margin-top: 8px; }
+.id-preview img { max-height: 80px; border-radius: 6px; border: 1px solid #e2e8f0; display: block; }
+
+/* Touch targets — remove buttons */
+.btn-danger { min-width: 32px; min-height: 32px; display: inline-flex; align-items: center; justify-content: center; }
+
+/* Mobile: nav buttons stack vertically */
+@media (max-width: 480px) {
+  .nav-buttons { flex-direction: column-reverse !important; gap: 8px; }
+  .nav-buttons button { width: 100%; text-align: center; justify-content: center; }
+}
+
+/* Mobile: hide step dots, show text title more prominently */
+@media (max-width: 640px) {
+  .step-indicator { display: none; }
+  #stepTitle { font-size: 0.95rem; font-weight: 700; padding: 4px 0; }
+}
+
+/* Mobile: modals as bottom sheets */
+@media (max-width: 640px) {
+  .modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+  .modal-box { border-radius: 20px 20px 0 0 !important; max-height: 92vh !important; margin: 0 !important; width: 100% !important; }
+  .modal-header { border-radius: 20px 20px 0 0 !important; }
+}
 </style>
 </head>
 <body class="min-h-screen">
@@ -179,8 +205,13 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
       <div class="info-box mb-4">
         <strong>Before you begin:</strong> Have the following ready —
         photo ID (driver's licence or passport), ABN/ACN for any businesses,
-        and trust deed details if applicable. You will also receive a separate
-        Seamlss link to upload your photo ID for verification.
+        and trust deed details if applicable. You can upload a copy of your
+        photo ID directly in this form. You will also receive a separate
+        Seamlss link to complete formal identity verification.
+      </div>
+      <div class="warn-box mb-4" style="background:#fefce8;border-color:#fde047;color:#713f12">
+        <strong>Using a shared or public computer?</strong> Do not use this form on a shared device.
+        Your progress is saved in this browser. If you must stop, use the "Start over" option when you return.
       </div>
       <div class="warn-box mb-6">
         <strong>Privacy notice:</strong> The information you provide is collected under the
@@ -223,14 +254,31 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
           <select id="c_state"><option value="">Select</option><option>ACT</option><option>NSW</option><option>NT</option><option>QLD</option><option>SA</option><option>TAS</option><option>VIC</option><option>WA</option></select>
           <div class="err-msg">Required</div>
         </div>
-        <div class="field"><label>Postcode <span class="req">*</span></label><input type="text" id="c_post" maxlength="4" placeholder="0000"/><div class="err-msg">Required</div></div>
+        <div class="field"><label>Postcode <span class="req">*</span></label><input type="text" id="c_post" maxlength="4" placeholder="0000" inputmode="numeric" pattern="[0-9]{4}"/><div class="err-msg">Required</div></div>
       </div>
       <div class="g2">
         <div class="field"><label>Occupation <span class="req">*</span></label><input type="text" id="c_occ" placeholder="e.g. Accountant"/><div class="err-msg">Required</div></div>
         <div class="field"><label>Employer</label><input type="text" id="c_emp" placeholder="Employer or business name"/></div>
       </div>
 
-      <div class="flex justify-between mt-6">
+      <div class="section-heading">Your photo ID</div>
+      <div class="g2 mb-2">
+        <div class="field">
+          <label>ID type</label>
+          <select id="c_idtype">
+            <option value="">Select (optional)</option>
+            <option value="licence">Driver's licence</option>
+            <option value="passport">Passport</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Upload a copy of your photo ID</label>
+          <input type="file" id="c_idfile" accept="image/*,application/pdf" style="padding:6px" onchange="previewIdFile('c_idfile','c_idpreview')"/>
+        </div>
+      </div>
+      <div id="c_idpreview" class="id-preview mb-3"></div>
+
+      <div class="flex justify-between mt-6 nav-buttons">
         <button class="btn-secondary" onclick="goStep(1)">← Back</button>
         <button class="btn-primary" onclick="saveContact()">Continue →</button>
       </div>
@@ -255,7 +303,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
         <strong>Tip:</strong> If you have a company that is the trustee of a trust, add the company first — then when you add the trust you can select it as the corporate trustee without re-entering details.
       </div>
 
-      <div class="flex justify-between mt-6">
+      <div class="flex justify-between mt-6 nav-buttons">
         <button class="btn-secondary" onclick="goStep(2)">← Back</button>
         <button class="btn-primary" onclick="goStep(4)">Continue →</button>
       </div>
@@ -292,7 +340,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
         <input type="text" id="svc_freq" placeholder="e.g. Annual returns, occasional advisory"/>
       </div>
 
-      <div class="flex justify-between mt-6">
+      <div class="flex justify-between mt-6 nav-buttons">
         <button class="btn-secondary" onclick="goStep(3)">← Back</button>
         <button class="btn-primary" onclick="saveServices()">Continue →</button>
       </div>
@@ -327,7 +375,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
         <div class="err-msg">Required</div>
       </div>
 
-      <div class="flex justify-between mt-6">
+      <div class="flex justify-between mt-6 nav-buttons">
         <button class="btn-secondary" onclick="goStep(4)">← Back</button>
         <button class="btn-primary" onclick="saveFunds()">Continue →</button>
       </div>
@@ -362,7 +410,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
         No problem — our AML/CTF Compliance Officer will follow up with you on this point before your engagement commences.
       </div>
 
-      <div class="flex justify-between mt-6">
+      <div class="flex justify-between mt-6 nav-buttons">
         <button class="btn-secondary" onclick="goStep(5)">← Back</button>
         <button class="btn-primary" onclick="savePep()">Continue →</button>
       </div>
@@ -375,7 +423,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
       <h2 class="text-lg font-bold text-brand-900 mb-1">Review your information</h2>
       <p class="text-sm text-gray-500 mb-5">Please check everything below before submitting. Use the edit buttons to go back and make changes.</p>
       <div id="reviewContent"></div>
-      <div class="flex justify-between mt-6">
+      <div class="flex justify-between mt-6 nav-buttons">
         <button class="btn-secondary" onclick="goStep(6)">← Back</button>
         <button class="btn-primary" onclick="goStep(8)">Looks good — Continue →</button>
       </div>
@@ -393,6 +441,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
         <label class="check-row"><input type="checkbox" id="d2"/> <span>I understand that Skyline Accounting is required by law to collect and verify this information, and that providing false or misleading information may be a criminal offence.</span></label>
         <label class="check-row"><input type="checkbox" id="d3"/> <span>I understand that services cannot commence until identity verification is complete, and that Skyline Accounting may request additional information at any time.</span></label>
         <label class="check-row"><input type="checkbox" id="d4"/> <span>I will notify Skyline Accounting promptly if any information in this form changes.</span></label>
+        <label class="check-row"><input type="checkbox" id="d5"/> <span>I consent to my information being securely transmitted to Skyline Accounting's email and document storage service providers (such as email and cloud storage platforms), who are contractually bound by confidentiality obligations and applicable privacy laws.</span></label>
       </div>
 
       <div class="g2">
@@ -406,7 +455,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
 
       <div id="decl_err" class="text-red-500 text-sm mt-2 hidden">Please confirm all declarations and complete all fields.</div>
 
-      <div class="flex justify-between mt-6">
+      <div class="flex justify-between mt-6 nav-buttons">
         <button class="btn-secondary" onclick="goStep(7)">← Back</button>
         <button class="btn-primary" onclick="submitForm()">Submit onboarding form →</button>
       </div>
@@ -563,20 +612,24 @@ function saveContact() {
     employer: val('c_emp')
   };
 
-  // Add primary contact to people registry if not already there
-  if (!state.people.find(p => p.id === 'primary')) {
-    state.people.push({
-      id: 'primary',
-      firstName: state.contact.firstName,
-      lastName: state.contact.lastName,
-      dob: state.contact.dob,
-      address: state.contact.address,
-      suburb: state.contact.suburb,
-      state: state.contact.state,
-      postcode: state.contact.postcode,
-      country: 'Australia',
-      isPrimary: true
-    });
+  // Add or update primary contact in people registry
+  const idFileEl = document.getElementById('c_idfile');
+  const idFile = idFileEl && idFileEl.files[0] ? idFileEl.files[0] : null;
+  const existingPrimary = state.people.find(p => p.id === 'primary');
+  const primaryPerson = {
+    id: 'primary',
+    firstName: state.contact.firstName, lastName: state.contact.lastName,
+    dob: state.contact.dob,
+    address: state.contact.address, suburb: state.contact.suburb,
+    state: state.contact.state, postcode: state.contact.postcode,
+    country: 'Australia', isPrimary: true,
+    idDocType: val('c_idtype') || (existingPrimary ? existingPrimary.idDocType : ''),
+    idDocFile: idFile || (existingPrimary ? existingPrimary.idDocFile : null)
+  };
+  if (existingPrimary) {
+    Object.assign(existingPrimary, primaryPerson);
+  } else {
+    state.people.push(primaryPerson);
   }
 
   goStep(3);
@@ -657,6 +710,7 @@ function openEntityForm(type, existing) {
   }
   document.getElementById('entityFormTitle').textContent = (existing ? 'Edit' : 'Add') + ' — ' + entityLabel(type);
   document.getElementById('entityFormBody').innerHTML = buildEntityForm(type, existing ? existing.data : null);
+  setTimeout(() => wireABNACNValidation(), 0);
   openModal('modalEntityForm');
   // Restore person lists if editing
   if (existing && existing.data) restorePersonLists(type, existing.data);
@@ -827,6 +881,20 @@ function saveEntity() {
   const nameEl = document.getElementById('ef_name');
   if (nameEl && !nameEl.value.trim()) { nameEl.classList.add('error'); nameEl.focus(); return; }
 
+  // ABN/ACN validation
+  const acnEl = document.getElementById('ef_acn');
+  const abnEl = document.getElementById('ef_abn');
+  if (acnEl && acnEl.value.trim() && !validateACN(acnEl.value.trim())) {
+    acnEl.classList.add('error');
+    const p = acnEl.closest('.field'); if (p) { p.classList.add('has-error'); let m=p.querySelector('.err-msg'); if(!m){m=document.createElement('div');m.className='err-msg';p.appendChild(m);} m.textContent='Invalid ACN — please check and re-enter'; }
+    acnEl.scrollIntoView({behavior:'smooth',block:'center'}); return;
+  }
+  if (abnEl && abnEl.value.trim() && !validateABN(abnEl.value.trim())) {
+    abnEl.classList.add('error');
+    const p = abnEl.closest('.field'); if (p) { p.classList.add('has-error'); let m=p.querySelector('.err-msg'); if(!m){m=document.createElement('div');m.className='err-msg';p.appendChild(m);} m.textContent='Invalid ABN — please check and re-enter'; }
+    abnEl.scrollIntoView({behavior:'smooth',block:'center'}); return;
+  }
+
   const data = collectEntityData(type);
   const name = nameEl ? nameEl.value.trim() : (state.contact.firstName + ' ' + state.contact.lastName);
 
@@ -948,13 +1016,26 @@ function newPersonFields() {
       <div class="field"><label>Country of residence</label><input type="text" id="pp_country" value="Australia"/></div>
     </div>
     <div class="field mb-2"><label>Residential address <span class="req">*</span></label><input type="text" id="pp_addr" placeholder="Street address"/></div>
-    <div class="g3">
+    <div class="g3 mb-2">
       <div class="field"><label>Suburb</label><input type="text" id="pp_suburb"/></div>
       <div class="field"><label>State</label>
         <select id="pp_state"><option value="">Select</option><option>ACT</option><option>NSW</option><option>NT</option><option>QLD</option><option>SA</option><option>TAS</option><option>VIC</option><option>WA</option></select>
       </div>
-      <div class="field"><label>Postcode</label><input type="text" id="pp_post" maxlength="4"/></div>
+      <div class="field"><label>Postcode</label><input type="text" id="pp_post" maxlength="4" inputmode="numeric" pattern="[0-9]{4}"/></div>
     </div>
+    <div class="g2 mb-2">
+      <div class="field"><label>ID type</label>
+        <select id="pp_idtype">
+          <option value="">Select (optional)</option>
+          <option value="licence">Driver's licence</option>
+          <option value="passport">Passport</option>
+        </select>
+      </div>
+      <div class="field"><label>Upload photo ID</label>
+        <input type="file" id="pp_idfile" accept="image/*,application/pdf" style="padding:6px" onchange="previewIdFile('pp_idfile','pp_idpreview')"/>
+      </div>
+    </div>
+    <div id="pp_idpreview" class="id-preview mb-2"></div>
   `;
 }
 
@@ -981,6 +1062,8 @@ function savePerson() {
     if (last) last.classList.add('error');
     return;
   }
+  const idTypeEl = document.getElementById('pp_idtype');
+  const idFileEl = document.getElementById('pp_idfile');
   const newPerson = {
     id: 'p_' + Date.now(),
     firstName: first.value.trim(),
@@ -990,7 +1073,9 @@ function savePerson() {
     suburb: val_id('pp_suburb'),
     state: val_id('pp_state'),
     postcode: val_id('pp_post'),
-    country: val_id('pp_country') || 'Australia'
+    country: val_id('pp_country') || 'Australia',
+    idDocType: idTypeEl ? idTypeEl.value : '',
+    idDocFile: idFileEl && idFileEl.files[0] ? idFileEl.files[0] : null
   };
   state.people.push(newPerson);
   if (personCallback) personCallback(newPerson.id);
@@ -1142,7 +1227,7 @@ function renderReview() {
 // STEP 8: SUBMIT
 // ═══════════════════════════════════════════════════════════════════════
 function submitForm() {
-  const checks = ['d1','d2','d3','d4'].every(id => document.getElementById(id).checked);
+  const checks = ['d1','d2','d3','d4','d5'].every(id => document.getElementById(id).checked);
   const name = document.getElementById('d_name').value.trim();
   const cap = document.getElementById('d_cap').value.trim();
   const date = document.getElementById('d_date').value;
@@ -1162,6 +1247,72 @@ function submitForm() {
 function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function val_id(id) { return val(id); }
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── ABN Validation (ATO algorithm) ─────────────────────────────────────
+// 11 digits; subtract 1 from first digit, apply weights, sum % 89 === 0
+function validateABN(raw) {
+  const d = raw.replace(/[\s-]/g,'');
+  if (!/^\d{11}$/.test(d)) return false;
+  const w = [10,1,3,5,7,9,11,13,15,17,19];
+  let sum = 0;
+  for (let i=0; i<11; i++) sum += (parseInt(d[i],10) - (i===0?1:0)) * w[i];
+  return sum % 89 === 0;
+}
+
+// ── ACN Validation (ASIC algorithm) ────────────────────────────────────
+// 9 digits; weighted sum of first 8, check = (10 - sum%10) % 10 === digit[8]
+function validateACN(raw) {
+  const d = raw.replace(/[\s-]/g,'');
+  if (!/^\d{9}$/.test(d)) return false;
+  const w = [8,7,6,5,4,3,2,1];
+  let sum = 0;
+  for (let i=0; i<8; i++) sum += parseInt(d[i],10) * w[i];
+  return (10 - (sum % 10)) % 10 === parseInt(d[8],10);
+}
+
+// ── Wire blur validation to ABN/ACN fields in entity form ──────────────
+function wireABNACNValidation() {
+  function wireField(el, validateFn, label) {
+    if (!el) return;
+    el.setAttribute('inputmode','numeric');
+    el.addEventListener('blur', function() {
+      const v = this.value.trim();
+      const p = this.closest('.field');
+      if (v && !validateFn(v)) {
+        this.classList.add('error');
+        if (p) {
+          p.classList.add('has-error');
+          let m = p.querySelector('.err-msg');
+          if (!m) { m = document.createElement('div'); m.className='err-msg'; p.appendChild(m); }
+          m.textContent = `Invalid ${label} — please check and re-enter`;
+        }
+      } else {
+        this.classList.remove('error');
+        if (p) { p.classList.remove('has-error'); }
+      }
+    }, { once: false });
+  }
+  wireField(document.getElementById('ef_abn'), validateABN, 'ABN');
+  wireField(document.getElementById('ef_acn'), validateACN, 'ACN');
+  wireField(document.getElementById('ef_corpacn'), validateACN, 'ACN');
+}
+
+// ── ID document file preview ────────────────────────────────────────────
+function previewIdFile(inputId, previewId) {
+  const file = document.getElementById(inputId).files[0];
+  const preview = document.getElementById(previewId);
+  if (!preview) return;
+  if (!file) { preview.innerHTML = ''; return; }
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.innerHTML = `<img src="${e.target.result}" alt="ID preview"/><div class="text-xs text-gray-400 mt-1">${escHtml(file.name)} (${(file.size/1024).toFixed(0)} KB)</div>`;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.innerHTML = `<div class="info-box text-xs">📄 ${escHtml(file.name)} (${(file.size/1024).toFixed(0)} KB)</div>`;
+  }
+}
 
 function validateFields(ids) {
   let ok = true;
@@ -1196,7 +1347,11 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // LOCAL STORAGE
 // ═══════════════════════════════════════════════════════════════════════
 function saveToStorage() {
-  try { localStorage.setItem('skyline_aml_state', JSON.stringify(state)); } catch(e){}
+  try {
+    const clone = JSON.parse(JSON.stringify(state, (k, v) => k === 'idDocFile' ? undefined : v));
+    clone.savedAt = Date.now();
+    localStorage.setItem('skyline_aml_state', JSON.stringify(clone));
+  } catch(e){}
 }
 
 function loadFromStorage() {
@@ -1204,7 +1359,13 @@ function loadFromStorage() {
     const saved = localStorage.getItem('skyline_aml_state');
     if (saved) {
       const parsed = JSON.parse(saved);
-      Object.assign(state, parsed);
+      // Discard state older than 24 hours (protect shared devices)
+      if (parsed.savedAt && Date.now() - parsed.savedAt > 24 * 60 * 60 * 1000) {
+        localStorage.removeItem('skyline_aml_state');
+        return;
+      }
+      const { savedAt, ...rest } = parsed;
+      Object.assign(state, rest);
     }
   } catch(e){}
 }
